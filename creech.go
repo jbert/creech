@@ -132,19 +132,27 @@ func (g *Game) Draw(ticks int) error {
 	return nil
 }
 
-type Creech struct {
+type Entity struct {
 	pos  Pos
 	size float64
+}
+
+type Creech struct {
+	Entity
 
 	name   string
 	facing Dir
 }
 
 func NewCreech(name string, pos Pos) *Creech {
+	creechSize := 1.0
 	return &Creech{
 		name:   name,
-		pos:    pos,
 		facing: North,
+		Entity: Entity{
+			pos:  pos,
+			size: creechSize,
+		},
 	}
 }
 
@@ -209,14 +217,20 @@ func (c *Creech) Screen() byte {
 }
 
 type Food struct {
-	pos Pos
+	Entity
 
-	size  float64
 	value int
 }
 
 func NewFood(v int, p Pos, size float64) *Food {
-	return &Food{value: v, pos: p}
+	foodSize := 1.0
+	return &Food{
+		Entity: Entity{
+			pos:  p,
+			size: foodSize,
+		},
+		value: v,
+	}
 }
 
 func (f *Food) Size() float64 {
