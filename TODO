@@ -1,0 +1,59 @@
+- move to floats
+    - pos
+    - randomEmpty becomes "size" based
+    - add Entity which has a float-pos and a size
+        - food and creeches embed entity
+
+
+----
+
+DONE - renorm creech posses into modulo-space each tick
+
+- pull a real random seed?
+
+- can we write a websocket-based renderer?
+    - with a JS client?
+    - in this case it make sense to make the render loop only send "undraw X", "draw X"?
+        - or maybe like WM_PAINT (blank this region, draw these items in that region)
+        - maybe not if we aren't tiled?
+
+- pull an 'Entity' out of Creech+Food?
+    - has a pos
+    - in a single list (or a single ForEach allows traversal?)
+
+- change to float coords for world?
+    - change to float pos
+        - change 'Equal' to 'Near'
+        - inbuilt epilson?
+        - or pass in size of Entities to define 'Near'?
+        - dir becomes "theta"
+    - tile at draw time?
+        - only 'screen' should care, other renderers may not be tile based
+    - pigeonhole problem? How to avoid drawing things in same tile?
+        - Answer: Ensure we can't have things too close to each other
+
+DONE - add in food
+    - value, pos
+
+DONE - add in another creech
+
+- have creech observe
+    - gets a list of []Food, []Creech
+        - define "Region"
+            - (poly or assembly of triangles)
+            - want to be able to see to your immediate left and right
+        - that is the view area
+        - then find entities in that region
+            - could use this also for randomEmptyPos?
+        - should be float-friendly
+    - what it sees depends which way it is facing
+    - also on the creech abilities
+        - genes, running
+
+- MakePlan depends on observation
+
+    - do we want to reify plan?
+        - type Plan interface {
+            StillPossible() bool
+            Execute()
+        }
