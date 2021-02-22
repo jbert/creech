@@ -4,7 +4,7 @@ type Renderer interface {
 	Init(w, h int) error
 	StartFrame() error
 	FinishFrame() error
-	DrawAt(i, j int, d Drawable) error
+	DrawAt(x, y float64, d Drawable) error
 }
 
 type Drawable interface {

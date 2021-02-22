@@ -2,6 +2,7 @@ package creech // import "github.com/jbert/creech"
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
@@ -28,7 +29,7 @@ func (g *Game) Init() error {
 
 	g.AddCreeches()
 	g.AddFood()
-	return g.renderer.Init(g.size.X, g.size.Y)
+	return g.renderer.Init(int(g.size.X), int(g.size.Y))
 }
 
 func (g *Game) AddCreeches() {
@@ -43,24 +44,25 @@ func (g *Game) AddFood() {
 	numFood := 5
 	for i := 0; i < numFood; i++ {
 		value := rand.Intn(10)
-		f := NewFood(value, g.randomEmptyPos())
+		foodSize := 1.0
+		f := NewFood(value, g.randomEmptyPos(foodSize), foodSize)
 		g.food = append(g.food, f)
 	}
 }
 
 // TODO: at a certain point, we'll want to avoid looping over everything to do this
-func (g *Game) randomEmptyPos() Pos {
+func (g *Game) randomEmptyPos(size float64) Pos {
 RANDOM_POSITION:
 	for {
-		p := Pos{rand.Intn(g.size.X), rand.Intn(g.size.Y)}
+		p := Pos{rand.Float64() * g.size.X, rand.Float64() * g.size.Y}
 		p = moduloPos(p, g.size)
 		for _, c := range g.creeches {
-			if c.Pos().Equal(p) {
+			if c.Pos().Near(p, c.Size()+size) {
 				continue RANDOM_POSITION
 			}
 		}
 		for _, f := range g.food {
-			if f.Pos().Equal(p) {
+			if f.Pos().Near(p, f.Size()+size) {
 				continue RANDOM_POSITION
 			}
 		}
@@ -131,8 +133,10 @@ func (g *Game) Draw(ticks int) error {
 }
 
 type Creech struct {
+	pos  Pos
+	size float64
+
 	name   string
-	pos    Pos
 	facing Dir
 }
 
@@ -140,7 +144,7 @@ func NewCreech(name string, pos Pos) *Creech {
 	return &Creech{
 		name:   name,
 		pos:    pos,
-		facing: East,
+		facing: North,
 	}
 }
 
@@ -150,6 +154,10 @@ func (c *Creech) String() string {
 
 func (c *Creech) Pos() Pos {
 	return c.pos
+}
+
+func (c *Creech) Size() float64 {
+	return c.size
 }
 
 func (c *Creech) MakePlan() {
@@ -187,26 +195,32 @@ func (c *Creech) DoPlan() {
 }
 
 func (c *Creech) Screen() byte {
-	switch c.facing {
-	case North:
-		return '^'
-	case East:
+	t := c.facing.Theta
+	if math.Abs(t) < math.Pi/4 {
 		return '>'
-	case South:
+	} else if math.Pi/4 < t && t < 3*math.Pi/4 {
+		return '^'
+	} else if -math.Pi/4 > t && t > -3*math.Pi/4 {
 		return 'v'
-	case West:
+	} else if math.Abs(t) > 3*math.Pi/4 {
 		return '<'
 	}
 	panic("wtf")
 }
 
 type Food struct {
+	pos Pos
+
+	size  float64
 	value int
-	pos   Pos
 }
 
-func NewFood(v int, p Pos) *Food {
+func NewFood(v int, p Pos, size float64) *Food {
 	return &Food{value: v, pos: p}
+}
+
+func (f *Food) Size() float64 {
+	return f.size
 }
 
 func (f *Food) Pos() Pos {

@@ -1,13 +1,22 @@
 package creech
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type Pos struct {
-	X, Y int
+	X, Y float64
 }
 
-func (p Pos) Equal(q Pos) bool {
-	return p.X == q.X && p.Y == q.Y
+func (p Pos) Near(q Pos, r float64) bool {
+	return p.DistSquard(q) < r*r
+}
+
+func (p Pos) DistSquard(q Pos) float64 {
+	dx := p.X - q.X
+	dy := p.Y - q.Y
+	return dx*dx + dy*dy
 }
 
 func (p Pos) Add(q Pos) Pos {
@@ -15,61 +24,43 @@ func (p Pos) Add(q Pos) Pos {
 }
 
 func (p Pos) Move(d Dir) Pos {
-	return p.Add(Pos(d))
+	return p.Add(d.Pos())
 }
 
 func (p Pos) String() string {
-	return fmt.Sprintf("[%d,%d]", p.X, p.Y)
+	return fmt.Sprintf("[%0.5f,%0.5f]", p.X, p.Y)
 }
 
-type Dir Pos
+type Dir struct {
+	R, Theta float64
+}
 
-var North = Dir{0, 1}
-var East = Dir{1, 0}
-var South = Dir{0, -1}
-var West = Dir{-1, 0}
+var North = Dir{R: 1.0, Theta: math.Pi / 2}
 
-func (d Dir) String() string {
-	switch d {
-	case North:
-		return "N"
-	case East:
-		return "E"
-	case South:
-		return "S"
-	case West:
-		return "W"
-	default:
-		panic(fmt.Sprintf("wtf: %v", d))
-	}
+func (d Dir) Turn(theta float64) Dir {
+	newDir := d
+	newDir.Theta += theta
+	return newDir.Normalise()
 }
 
 func (d Dir) TurnRight() Dir {
-	switch d {
-	case North:
-		return East
-	case East:
-		return South
-	case South:
-		return West
-	case West:
-		return North
-	default:
-		panic(fmt.Sprintf("wtf: %v", d))
-	}
+	return d.Turn(-math.Pi / 2)
 }
 
 func (d Dir) TurnLeft() Dir {
-	switch d {
-	case North:
-		return West
-	case East:
-		return North
-	case South:
-		return East
-	case West:
-		return South
-	default:
-		panic(fmt.Sprintf("wtf: %v", d))
-	}
+	return d.Turn(math.Pi / 2)
+}
+
+// To -math.Pi < theta <= math.Pi
+func (d Dir) Normalise() Dir {
+	theta := math.Mod(d.Theta, 2*math.Pi)
+	return Dir{d.R, theta}
+}
+
+func (d Dir) Pos() Pos {
+	return Pos{d.R * math.Cos(d.Theta), d.R * math.Sin(d.Theta)}
+}
+
+func (d Dir) String() string {
+	return fmt.Sprintf("(%0.5f,%0.5f)", d.R, d.Theta)
 }
