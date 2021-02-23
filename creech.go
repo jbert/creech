@@ -29,7 +29,7 @@ func (g *Game) Init() error {
 
 	g.AddCreeches()
 	g.AddFood()
-	return g.renderer.Init(int(g.size.X), int(g.size.Y))
+	return g.renderer.Init(g.size.X, g.size.Y)
 }
 
 func (g *Game) AddCreeches() {
@@ -89,7 +89,7 @@ func (g *Game) Run() error {
 func (g *Game) Update() {
 	for _, creech := range g.creeches {
 		creech.ModuloPos(g.size)
-		creech.MakePlan()
+		creech.MakePlan(g)
 	}
 	for _, creech := range g.creeches {
 		creech.DoPlan()
@@ -168,7 +168,19 @@ func (c *Creech) Size() float64 {
 	return c.size
 }
 
-func (c *Creech) MakePlan() {
+func (c *Creech) MakePlan(g *Game) {
+	//	region := c.ViewRegion()
+	//	itemsOfInterest := g.Observe(region)
+}
+
+func (c *Creech) DoPlan() {
+	r := rand.Intn(10)
+	if r < 2 {
+		c.facing = c.facing.TurnLeft()
+	} else if r < 4 {
+		c.facing = c.facing.TurnRight()
+	}
+	c.pos = c.pos.Move(c.facing)
 }
 
 func (c *Creech) ModuloPos(worldSize Pos) {
@@ -190,16 +202,6 @@ func moduloPos(p Pos, worldSize Pos) Pos {
 		q.Y += worldSize.Y
 	}
 	return q
-}
-
-func (c *Creech) DoPlan() {
-	r := rand.Intn(10)
-	if r < 2 {
-		c.facing = c.facing.TurnLeft()
-	} else if r < 4 {
-		c.facing = c.facing.TurnRight()
-	}
-	c.pos = c.pos.Move(c.facing)
 }
 
 func (c *Creech) Screen() byte {

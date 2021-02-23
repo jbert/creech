@@ -14,9 +14,9 @@ func NewScreen() *Screen {
 	return &Screen{}
 }
 
-func (s *Screen) Init(w, h int) error {
-	s.width = w
-	s.height = h
+func (s *Screen) Init(w, h float64) error {
+	s.width = int(w)
+	s.height = int(h)
 
 	return nil
 }

@@ -1,8 +1,23 @@
-- move to floats
+DONE - move to floats
     - pos
     - randomEmpty becomes "size" based
     - add Entity which has a float-pos and a size
         - food and creeches embed entity
+
+- DRY foodSize
+    - make size dependent on value?
+
+- web renderer
+    DONE - draw a line (centre -> direction)
+    DONE - open a websocket
+    - proxy startframe/finishframe/drawat over websocket as JSON
+    - drawat should send {pos, style=circle|line, facing} for creech and food
+    - see if it works
+    - move to PNGs?
+        - or Drawable could send JS to draw on the canvas?
+    - urls to load PNGs for creeches - actually entities
+        - /entity/id/image.png
+        - /creech   {
 
 
 ----
@@ -17,11 +32,14 @@ DONE - renorm creech posses into modulo-space each tick
         - or maybe like WM_PAINT (blank this region, draw these items in that region)
         - maybe not if we aren't tiled?
 
-- pull an 'Entity' out of Creech+Food?
+DONE - pull an 'Entity' out of Creech+Food?
     - has a pos
     - in a single list (or a single ForEach allows traversal?)
 
-- change to float coords for world?
+- entity needs an id?
+    - so we can find + remove them?
+
+DONE - change to float coords for world?
     - change to float pos
         - change 'Equal' to 'Near'
         - inbuilt epilson?
@@ -36,6 +54,14 @@ DONE - add in food
     - value, pos
 
 DONE - add in another creech
+
+- don't return actual creeches and food in "Observe" but instead "observations"
+    - disguise!
+    - bad eyesight!
+
+- how to handle running away from something
+    - do we remember it's there?
+    - can we hear it?
 
 - have creech observe
     - gets a list of []Food, []Creech

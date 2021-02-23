@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <title>Creech</title>
+    </head>
+    <body>
+        <p>Welcome to Creech</p>
+        <canvas id="{{.CanvasID}}" width="{{.WidthPixels}}" height="{{.HeightPixels}}">
+        </canvas>
+        <hr>
+        <p id="last_ws_message"></p>
+    </body>
+    <script>
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+const wsLog = document.getElementById('last_ws_message');
+console.log("JB0");
+//ctx.fillStyle = 'green';
+//ctx.fillRect(10, 10, {{.WidthPixels}}, {{.HeightPixels}});
+ctx.beginPath();
+ctx.moveTo(20, 20);
+ctx.lineTo(100, 30);
+ctx.stroke();
+console.log("JB1");
+wsURL = "ws://" + location.host + "/{{.WSURL}}";
+console.log("using ws URL: " + wsURL);
+ws = new WebSocket(wsURL);
+console.log("JB2 - got WS");
+ws.onopen = function(ev) {
+    console.log("Websocket is open");
+}
+ws.onmessage = function(ev) {
+    console.log("got ws message [" + ev.data + "]");
+    wsLog.innerHTML = ev.data;
+}
+    </script>
+</html>
