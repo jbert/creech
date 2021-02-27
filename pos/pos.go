@@ -16,7 +16,7 @@ func (p Pos) Unit() Pos {
 func (p Pos) Dir() Dir {
 	return Dir{
 		R:     p.Length(),
-		Theta: math.Atan(p.Y / p.X),
+		Theta: math.Atan2(p.Y, p.X),
 	}
 }
 
@@ -76,7 +76,11 @@ func (d Dir) TurnLeft() Dir {
 
 // To -math.Pi < theta <= math.Pi
 func (d Dir) Normalise() Dir {
-	theta := math.Mod(d.Theta, 2*math.Pi)
+	theta := d.Theta
+	if theta > math.Pi {
+		theta -= 2 * math.Pi
+	}
+	theta = math.Mod(theta, 2*math.Pi)
 	return Dir{d.R, theta}
 }
 
