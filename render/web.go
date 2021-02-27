@@ -2,14 +2,15 @@ package render
 
 import (
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/jbert/creech/pos"
 )
 
 type Web struct {
@@ -20,6 +21,20 @@ type Web struct {
 	pixelsPerMetre float64
 
 	rootTemplate *template.Template
+	drawCh       chan drawCommand
+}
+
+type drawType int
+
+const (
+	startFrame drawType = iota
+	drawPoly
+	finishFrame
+)
+
+type drawCommand struct {
+	What   drawType
+	Points []pos.Pos
 }
 
 //go:embed static/root.html
@@ -30,9 +45,10 @@ func NewWeb(hostport string) *Web {
 		hostport: hostport,
 		mux:      http.NewServeMux(),
 
-		pixelsPerMetre: 5.0,
+		pixelsPerMetre: 20.0,
 
 		rootTemplate: template.Must(template.New("root").Parse(rootTemplateString)),
+		drawCh:       make(chan drawCommand),
 	}
 }
 
@@ -47,38 +63,44 @@ func (w *Web) handleWebSocket(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, fmt.Sprintf("Can't upgrade websocket: %s", err), http.StatusInternalServerError)
 		return
 	}
-	tickDur := time.Second
-	ticker := time.NewTicker(tickDur)
-	defer ticker.Stop()
-	for {
-		log.Printf("Sending ws message")
+	for cmd := range w.drawCh {
 		wsWriter, err := conn.NextWriter(websocket.TextMessage)
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Can't get websocket writer: %s", err), http.StatusInternalServerError)
 			return
 		}
-		fmt.Fprintf(wsWriter, "Hi - it is %s\n", time.Now())
+		jsonCmd, err := json.Marshal(cmd)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("Can't marshal to JSON: %s", err), http.StatusInternalServerError)
+			err = wsWriter.Close()
+			return
+		}
+		wsWriter.Write(jsonCmd)
 		err = wsWriter.Close()
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Can't close websocket writer: %s", err), http.StatusInternalServerError)
 			return
 		}
-		log.Printf("Sent ws message")
-		<-ticker.C
 	}
 }
 
 func (w *Web) handleRoot(rw http.ResponseWriter, r *http.Request) {
 	tmplData := struct {
-		CanvasID     string
 		WidthPixels  int
 		HeightPixels int
+		Scale        float64
 		WSURL        string
+		StartFrame   int
+		FinishFrame  int
+		DrawPoly     int
 	}{
-		"world",
 		int(w.pixelsPerMetre * w.width),
 		int(w.pixelsPerMetre * w.height),
+		w.pixelsPerMetre,
 		"ws",
+		int(startFrame),
+		int(finishFrame),
+		int(drawPoly),
 	}
 	err := w.rootTemplate.Execute(rw, tmplData)
 	if err != nil {
@@ -105,13 +127,26 @@ func (w *Web) Init(width, height float64) error {
 }
 
 func (w *Web) StartFrame() error {
-	return nil
+	select {
+	// Just drop it if we have no connection
+	case w.drawCh <- drawCommand{What: startFrame}:
+		return nil
+	}
 }
 
 func (w *Web) FinishFrame() error {
-	return nil
+	select {
+	// Just drop it if we have no connection
+	case w.drawCh <- drawCommand{What: finishFrame}:
+		return nil
+	}
 }
 
 func (w *Web) DrawAt(x, y float64, d Drawable) error {
-	return nil
+	points := d.Web()
+	select {
+	// Just drop it if we have no connection
+	case w.drawCh <- drawCommand{What: drawPoly, Points: points}:
+		return nil
+	}
 }

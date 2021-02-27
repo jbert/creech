@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/jbert/creech/render"
+
+	. "github.com/jbert/creech/pos"
 )
 
 type Game struct {
@@ -71,7 +73,7 @@ RANDOM_POSITION:
 }
 
 func (g *Game) Run() error {
-	tickDur := 100 * time.Millisecond
+	tickDur := time.Second
 	tickCh := time.Tick(tickDur)
 	ticks := 0
 
@@ -98,12 +100,17 @@ func (g *Game) Update() {
 
 func (g *Game) Draw(ticks int) error {
 	r := g.renderer
+	dlog := func(s string, args ...interface{}) {
+		//		log.Printf(s, args...)
+	}
+	dlog("StartFrame")
 	err := r.StartFrame()
 	if err != nil {
 		return fmt.Errorf("StartFrame: %w", err)
 	}
 
-	for _, f := range g.food {
+	for i, f := range g.food {
+		dlog("Draw Food %d", i)
 		p := f.Pos()
 		err = r.DrawAt(p.X, p.Y, f)
 		if err != nil {
@@ -111,7 +118,8 @@ func (g *Game) Draw(ticks int) error {
 		}
 	}
 
-	for _, creech := range g.creeches {
+	for i, creech := range g.creeches {
+		dlog("Draw Creech %d", i)
 		p := creech.Pos()
 		err = r.DrawAt(p.X, p.Y, creech)
 		if err != nil {
@@ -119,6 +127,7 @@ func (g *Game) Draw(ticks int) error {
 		}
 	}
 
+	dlog("FinishFrame")
 	err = r.FinishFrame()
 	if err != nil {
 		return fmt.Errorf("FinishFrame: %w", err)
@@ -218,6 +227,24 @@ func (c *Creech) Screen() byte {
 	panic("wtf")
 }
 
+func arrow(from, to Pos, headSize float64) []Pos {
+	dir := to.Sub(from).Dir()
+	dir.R = headSize
+	back1 := dir.Turn(math.Pi * 3 / 4)
+	back2 := dir.Turn(-math.Pi * 3 / 4)
+	return []Pos{
+		from,
+		to,
+		to.Add(back1.Pos()),
+		to.Add(back2.Pos()),
+		to,
+	}
+}
+func (c *Creech) Web() []Pos {
+	dir := c.facing.Pos().Scale(c.size)
+	return arrow(c.pos, c.pos.Add(dir), 0.3)
+}
+
 type Food struct {
 	Entity
 
@@ -253,4 +280,19 @@ func (f *Food) Screen() byte {
 	} else {
 		return '*'
 	}
+}
+
+func closedPolygon(sides int, p Pos, r float64) []Pos {
+	pts := make([]Pos, sides+1)
+	theta := 0.0
+	dTheta := 2 * math.Pi / float64(sides)
+	for i := 0; i <= sides; i++ {
+		pts[i] = Pos{X: p.X + r*math.Cos(theta), Y: p.Y + r*math.Sin(theta)}
+		theta += dTheta
+	}
+	return pts
+}
+
+func (f *Food) Web() []Pos {
+	return closedPolygon(6, f.pos, f.size/2)
 }

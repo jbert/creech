@@ -1,5 +1,9 @@
 package render
 
+import (
+	"github.com/jbert/creech/pos"
+)
+
 type Renderer interface {
 	Init(w, h float64) error
 	StartFrame() error
@@ -9,4 +13,5 @@ type Renderer interface {
 
 type Drawable interface {
 	Screen() byte
+	Web() []pos.Pos
 }

@@ -4,22 +4,28 @@
     </head>
     <body>
         <p>Welcome to Creech</p>
-        <canvas id="{{.CanvasID}}" width="{{.WidthPixels}}" height="{{.HeightPixels}}">
+        <canvas id="draw_canvas" width="{{.WidthPixels}}" height="{{.HeightPixels}}">
         </canvas>
+        <!-->
         <hr>
         <p id="last_ws_message"></p>
+        <-->
     </body>
     <script>
-const canvas = document.getElementById('world');
-const ctx = canvas.getContext('2d');
-const wsLog = document.getElementById('last_ws_message');
+const drawCanvas = document.getElementById('draw_canvas');
+const ctx = drawCanvas.getContext('2d');
+//const wsLog = document.getElementById('last_ws_message');
 console.log("JB0");
 //ctx.fillStyle = 'green';
 //ctx.fillRect(10, 10, {{.WidthPixels}}, {{.HeightPixels}});
-ctx.beginPath();
-ctx.moveTo(20, 20);
-ctx.lineTo(100, 30);
-ctx.stroke();
+//ctx.beginPath();
+//ctx.moveTo(20, 20);
+//ctx.lineTo(100, 30);
+//ctx.stroke();
+ctx.translate(drawCanvas.width/2, drawCanvas.height/2)
+ctx.scale({{.Scale}},-{{.Scale}});
+ctx.lineWidth = 1 / {{.Scale}}
+
 console.log("JB1");
 wsURL = "ws://" + location.host + "/{{.WSURL}}";
 console.log("using ws URL: " + wsURL);
@@ -28,9 +34,35 @@ console.log("JB2 - got WS");
 ws.onopen = function(ev) {
     console.log("Websocket is open");
 }
+const startFrame = {{.StartFrame}};
+const finishFrame = {{.FinishFrame}};
+const drawPoly = {{.DrawPoly}};
 ws.onmessage = function(ev) {
     console.log("got ws message [" + ev.data + "]");
-    wsLog.innerHTML = ev.data;
+//    wsLog.innerHTML = ev.data;
+    cmd = JSON.parse(ev.data)
+    switch (cmd.What) {
+        case startFrame:
+            ctx.clearRect(-drawCanvas.width, -drawCanvas.height, 2*drawCanvas.width, 2*drawCanvas.height);
+//            ctx.fillStyle = 'green';
+ //           ctx.fillRect(0, 0, {{.WidthPixels}}, {{.HeightPixels}});
+//            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            break;
+        case finishFrame:
+//            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            break;
+        case drawPoly:
+            ctx.beginPath();
+            cmd.Points.forEach(function(pt, index) {
+                if (index == 0) {
+                    ctx.moveTo(pt.X, pt.Y);
+                } else {
+                    ctx.lineTo(pt.X, pt.Y);
+                }
+            })
+            ctx.stroke();
+            break;
+    }
 }
     </script>
 </html>

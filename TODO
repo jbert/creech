@@ -4,13 +4,43 @@ DONE - move to floats
     - add Entity which has a float-pos and a size
         - food and creeches embed entity
 
+- make food size related to value
+    - only store one
+    - lose 'size' in entity?
+    - lose entity?
+
+- rename Dir Polar?
+
 - DRY foodSize
     - make size dependent on value?
+
+- remove x,y from DrawAt
+    - instead just pass the drawable
+    - the drawables know where they are
+
+- unpick the websocket loop into a function
+    - and use defer for close
+
+- remove 'R' from 'Dir'
 
 - web renderer
     DONE - draw a line (centre -> direction)
     DONE - open a websocket
+    - remove pixelsPerWidth
+        - go 1:1 for now
+        - then set up JS canvas with a transform
+            - so that (0,0) is centered
+            - and x goes from (-width/2, width]
+            - and y goes from (-height/2, height]
+            - then Drawable can send JS commands
+                - startFrame fillrect (in game coords)
+                - "circle"
+                - moveTo/lineTo
+                - fiinshFrame 'stroke'
+    - just send a poly to draw:
+        - pts + hex rgb to fill
     - proxy startframe/finishframe/drawat over websocket as JSON
+        - or as JS!?
     - drawat should send {pos, style=circle|line, facing} for creech and food
     - see if it works
     - move to PNGs?
@@ -19,6 +49,11 @@ DONE - move to floats
         - /entity/id/image.png
         - /creech   {
 
+- TODO
+    - is there a Drawable abstraction which would work over SDL and JS?
+        - instead of returning JS to draw a thing?
+        - work in internal coords
+        type DrawCommand
 
 ----
 

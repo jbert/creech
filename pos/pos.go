@@ -1,4 +1,4 @@
-package creech
+package pos
 
 import (
 	"fmt"
@@ -7,6 +7,25 @@ import (
 
 type Pos struct {
 	X, Y float64
+}
+
+func (p Pos) Unit() Pos {
+	return p.Scale(1 / p.Length())
+}
+
+func (p Pos) Dir() Dir {
+	return Dir{
+		R:     p.Length(),
+		Theta: math.Atan(p.Y / p.X),
+	}
+}
+
+func (p Pos) Length() float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func (p Pos) Scale(r float64) Pos {
+	return Pos{p.X * r, p.Y * r}
 }
 
 func (p Pos) Near(q Pos, r float64) bool {
@@ -21,6 +40,10 @@ func (p Pos) DistSquard(q Pos) float64 {
 
 func (p Pos) Add(q Pos) Pos {
 	return Pos{p.X + q.X, p.Y + q.Y}
+}
+
+func (p Pos) Sub(q Pos) Pos {
+	return Pos{p.X - q.X, p.Y - q.Y}
 }
 
 func (p Pos) Move(d Dir) Pos {
