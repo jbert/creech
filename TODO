@@ -8,6 +8,8 @@ DONE - move to floats
     - add Entity which has a float-pos and a size
         - food and creeches embed entity
 
+DONE - turn and move on smaller granularity
+
 - make food size related to value
     - only store one
     - lose 'size' in entity?

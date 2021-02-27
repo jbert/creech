@@ -184,12 +184,12 @@ func (c *Creech) MakePlan(g *Game) {
 
 func (c *Creech) DoPlan() {
 	r := rand.Intn(10)
-	if r < 2 {
-		c.facing = c.facing.TurnLeft()
-	} else if r < 4 {
-		c.facing = c.facing.TurnRight()
+	if r < 4 {
+		turn := (rand.Float64() - 0.5) * 0.5 * math.Pi
+		c.facing = c.facing.Turn(turn)
 	}
-	c.pos = c.pos.Move(c.facing)
+	dist := 0.5 + rand.Float64()
+	c.pos = c.pos.Move(c.facing.Scale(dist))
 }
 
 func (c *Creech) ModuloPos(worldSize Pos) {

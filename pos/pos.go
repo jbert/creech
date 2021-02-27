@@ -84,6 +84,10 @@ func (d Dir) Normalise() Dir {
 	return Dir{d.R, theta}
 }
 
+func (d Dir) Scale(r float64) Dir {
+	return Dir{R: d.R * r, Theta: d.Theta}
+}
+
 func (d Dir) Pos() Pos {
 	return Pos{d.R * math.Cos(d.Theta), d.R * math.Sin(d.Theta)}
 }
