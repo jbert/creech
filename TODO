@@ -1,3 +1,7 @@
+- clean golangci-lint
+
+DONE - make tick a cmdline option
+
 DONE - move to floats
     - pos
     - randomEmpty becomes "size" based
@@ -8,6 +12,8 @@ DONE - move to floats
     - only store one
     - lose 'size' in entity?
     - lose entity?
+
+- fix down-pointing arrow
 
 - rename Dir Polar?
 
@@ -21,12 +27,12 @@ DONE - move to floats
 - unpick the websocket loop into a function
     - and use defer for close
 
-- remove 'R' from 'Dir'
+NO - remove 'R' from 'Dir'
 
 - web renderer
     DONE - draw a line (centre -> direction)
     DONE - open a websocket
-    - remove pixelsPerWidth
+    DONE - remove pixelsPerWidth
         - go 1:1 for now
         - then set up JS canvas with a transform
             - so that (0,0) is centered
@@ -37,12 +43,12 @@ DONE - move to floats
                 - "circle"
                 - moveTo/lineTo
                 - fiinshFrame 'stroke'
-    - just send a poly to draw:
+    DONE - just send a poly to draw:
         - pts + hex rgb to fill
-    - proxy startframe/finishframe/drawat over websocket as JSON
+    DONE - proxy startframe/finishframe/drawat over websocket as JSON
         - or as JS!?
-    - drawat should send {pos, style=circle|line, facing} for creech and food
-    - see if it works
+    DONE - drawat should send {pos, style=circle|line, facing} for creech and food
+    DONE - see if it works
     - move to PNGs?
         - or Drawable could send JS to draw on the canvas?
     - urls to load PNGs for creeches - actually entities

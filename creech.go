@@ -12,17 +12,18 @@ import (
 )
 
 type Game struct {
-	size Pos
+	size     Pos
+	tickDur  time.Duration
+	renderer render.Renderer
 
 	creeches []*Creech
 	food     []*Food
-
-	renderer render.Renderer
 }
 
-func NewGame(r render.Renderer) *Game {
+func NewGame(r render.Renderer, tickDur time.Duration) *Game {
 	return &Game{
 		size:     Pos{20, 20},
+		tickDur:  tickDur,
 		renderer: r,
 	}
 }
@@ -73,8 +74,7 @@ RANDOM_POSITION:
 }
 
 func (g *Game) Run() error {
-	tickDur := time.Second
-	tickCh := time.Tick(tickDur)
+	tickCh := time.Tick(g.tickDur)
 	ticks := 0
 
 	for range tickCh {
