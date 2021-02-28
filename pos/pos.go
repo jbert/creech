@@ -13,8 +13,8 @@ func (p Pos) Unit() Pos {
 	return p.Scale(1 / p.Length())
 }
 
-func (p Pos) Dir() Dir {
-	return Dir{
+func (p Pos) Polar() Polar {
+	return Polar{
 		R:     p.Length(),
 		Theta: math.Atan2(p.Y, p.X),
 	}
@@ -46,52 +46,52 @@ func (p Pos) Sub(q Pos) Pos {
 	return Pos{p.X - q.X, p.Y - q.Y}
 }
 
-func (p Pos) Move(d Dir) Pos {
-	return p.Add(d.Pos())
+func (p Pos) Move(q Polar) Pos {
+	return p.Add(q.Pos())
 }
 
 func (p Pos) String() string {
 	return fmt.Sprintf("[%0.5f,%0.5f]", p.X, p.Y)
 }
 
-type Dir struct {
+type Polar struct {
 	R, Theta float64
 }
 
-var North = Dir{R: 1.0, Theta: math.Pi / 2}
+var North = Polar{R: 1.0, Theta: math.Pi / 2}
 
-func (d Dir) Turn(theta float64) Dir {
-	newDir := d
-	newDir.Theta += theta
-	return newDir.Normalise()
+func (p Polar) Turn(theta float64) Polar {
+	newP := p
+	newP.Theta += theta
+	return newP.Normalise()
 }
 
-func (d Dir) TurnRight() Dir {
-	return d.Turn(-math.Pi / 2)
+func (p Polar) TurnRight() Polar {
+	return p.Turn(-math.Pi / 2)
 }
 
-func (d Dir) TurnLeft() Dir {
-	return d.Turn(math.Pi / 2)
+func (p Polar) TurnLeft() Polar {
+	return p.Turn(math.Pi / 2)
 }
 
 // To -math.Pi < theta <= math.Pi
-func (d Dir) Normalise() Dir {
-	theta := d.Theta
+func (p Polar) Normalise() Polar {
+	theta := p.Theta
 	if theta > math.Pi {
 		theta -= 2 * math.Pi
 	}
 	theta = math.Mod(theta, 2*math.Pi)
-	return Dir{d.R, theta}
+	return Polar{p.R, theta}
 }
 
-func (d Dir) Scale(r float64) Dir {
-	return Dir{R: d.R * r, Theta: d.Theta}
+func (p Polar) Scale(r float64) Polar {
+	return Polar{R: p.R * r, Theta: p.Theta}
 }
 
-func (d Dir) Pos() Pos {
-	return Pos{d.R * math.Cos(d.Theta), d.R * math.Sin(d.Theta)}
+func (p Polar) Pos() Pos {
+	return Pos{p.R * math.Cos(p.Theta), p.R * math.Sin(p.Theta)}
 }
 
-func (d Dir) String() string {
-	return fmt.Sprintf("(%0.5f,%0.5f)", d.R, d.Theta)
+func (p Polar) String() string {
+	return fmt.Sprintf("(%0.5f,%0.5f)", p.R, p.Theta)
 }

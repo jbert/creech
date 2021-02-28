@@ -150,7 +150,7 @@ type Creech struct {
 	Entity
 
 	name   string
-	facing Dir
+	facing Polar
 }
 
 func NewCreech(name string, pos Pos) *Creech {
@@ -228,10 +228,10 @@ func (c *Creech) Screen() byte {
 }
 
 func arrow(from, to Pos, headSize float64) []Pos {
-	dir := to.Sub(from).Dir()
-	dir.R = headSize
-	back1 := dir.Turn(math.Pi * 3 / 4)
-	back2 := dir.Turn(-math.Pi * 3 / 4)
+	p := to.Sub(from).Polar()
+	p.R = headSize
+	back1 := p.Turn(math.Pi * 3 / 4)
+	back2 := p.Turn(-math.Pi * 3 / 4)
 	return []Pos{
 		from,
 		to,
