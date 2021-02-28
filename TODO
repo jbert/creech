@@ -24,33 +24,46 @@ DONE - draw view region
     DONE - have helpers/ctors for DrawCommand
         DONE - default colours?
 
-- respect line and fill colours in drawing
+DONE - fix error logging in websocket handler
+    - repro by making json encode fail
 
-- have creech observe
-    - get view region
-    - draw region as a filled colour region
-    - NOP on Screen
+OK - JS gradual slowdown over time?
+    - try animation frame?
+
+DONE - respect line and fill colours in drawing
+
+DONE - have creech observe
+    DONE - get view region
+    DONE - draw region as a filled colour region
+    DONE - NOP on Screen
+
+- use view region
+    - gets a list of []Food, []Creech (and distance to each)
+        DONE - define "Region"
+            - (poly or assembly of triangles)
+            - want to be able to see to your immediate left and right
+        - then find entities in that region
+            - could use this also for randomEmptyPos?
+        DONE - should be float-friendly
+    DONE - what it sees depends which way it is facing
+    - also on the creech abilities
+        - genes, running
+
+DONE - make 'Entity' an interface
+    DONE - BaseEntity implements, Creech and Food embed
+        - No! Food Calculates size
+    DONE - Pos, Size
+
+- Observe returns []Entity
+    - can type-switch return list
+
+DONE - foodDensity (size per value) is a property of the kind of food
+    - arg to food ctor
 
 -----------------------------------------------------------------
 
 Soon
 ----
-
-- foodDensity (size per value) is a property of the kind of food
-    - arg to food ctor
-
-- use view region
-    - gets a list of []Food, []Creech
-        - define "Region"
-            - (poly or assembly of triangles)
-            - want to be able to see to your immediate left and right
-        - that is the view area
-        - then find entities in that region
-            - could use this also for randomEmptyPos?
-        - should be float-friendly
-    - what it sees depends which way it is facing
-    - also on the creech abilities
-        - genes, running
 
 - move constants into method call on Creech
     - view distance
@@ -74,6 +87,12 @@ Soon
 
 Maybe
 -----
+
+- optimisations
+    - define colours once
+    - draw creechs once and translate
+        - server side?
+    - client side render
 
 - improve view region?
     - side

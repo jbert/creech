@@ -51,7 +51,7 @@ func (w *Web) handleWebSocket(rw http.ResponseWriter, r *http.Request) {
 	for cmd := range w.drawCh {
 		err = conn.WriteJSON(cmd)
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("Can't writeJSON to websocket: %s", err), http.StatusInternalServerError)
+			log.Printf("Can't writeJSON to websocket: %s", err)
 			return
 		}
 	}

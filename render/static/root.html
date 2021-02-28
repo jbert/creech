@@ -60,7 +60,14 @@ ws.onmessage = function(ev) {
                     ctx.lineTo(pt.X, pt.Y);
                 }
             })
+            console.log("Line colour " + cmd.LineColour)
+            ctx.strokeStyle = cmd.LineColour;
+            ctx.closePath()
             ctx.stroke();
+            if (cmd.DoFill) {
+                ctx.fillStyle = cmd.FillColour;
+                ctx.fill();
+            }
             break;
     }
 }

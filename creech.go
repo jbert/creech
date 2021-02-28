@@ -50,7 +50,7 @@ func (g *Game) AddFood() {
 		value := rand.Float64() * 10
 		density := 0.4
 		f := NewFood(value, density)
-		f.SetRandomPos(g)
+		f.SetRandomPos(g, f.Size())
 		g.food = append(g.food, f)
 	}
 }
@@ -62,7 +62,7 @@ RANDOM_POSITION:
 		p := Pos{rand.Float64() * g.size.X, rand.Float64() * g.size.Y}
 		p = moduloPos(p, g.size)
 		for _, c := range g.creeches {
-			if c.Pos().Near(p, c.Size()+size) {
+			if c.pos.Near(p, c.Size()+size) {
 				continue RANDOM_POSITION
 			}
 		}
@@ -141,25 +141,26 @@ func (g *Game) Draw(ticks int) error {
 	return nil
 }
 
-type Entity struct {
-	pos  Pos
-	size float64
+type Entity interface {
+	Pos() Pos
+	Size() float64
 }
 
-func (e *Entity) SetRandomPos(g *Game) {
-	e.pos = g.randomEmptyPos(e.size)
+type BaseEntity struct {
+	pos Pos
 }
 
-func (e *Entity) Pos() Pos {
-	return e.pos
+func (be *BaseEntity) SetRandomPos(g *Game, size float64) {
+	be.pos = g.randomEmptyPos(size)
 }
 
-func (e *Entity) Size() float64 {
-	return e.size
+func (be *BaseEntity) Pos() Pos {
+	return be.pos
 }
 
 type Creech struct {
-	Entity
+	BaseEntity
+	size float64
 
 	name   string
 	facing Polar
@@ -168,13 +169,15 @@ type Creech struct {
 func NewCreech(name string, pos Pos) *Creech {
 	creechSize := 1.0
 	return &Creech{
-		name:   name,
-		facing: North,
-		Entity: Entity{
-			pos:  pos,
-			size: creechSize,
-		},
+		name:       name,
+		size:       creechSize,
+		facing:     North,
+		BaseEntity: BaseEntity{pos},
 	}
+}
+
+func (c *Creech) Size() float64 {
+	return c.size
 }
 
 func (c *Creech) String() string {
@@ -183,7 +186,7 @@ func (c *Creech) String() string {
 
 func (c *Creech) MakePlan(g *Game) {
 	//	region := c.ViewRegion()
-	//	itemsOfInterest := g.Observe(region)
+	//	food, creeches := g.Observe(region)
 }
 
 func (c *Creech) DoPlan() {
@@ -219,8 +222,8 @@ func moduloPos(p Pos, worldSize Pos) Pos {
 
 func (c *Creech) Screen() (int, int, byte) {
 	t := c.facing.Theta
-	i := int(c.Pos().X)
-	j := int(c.Pos().Y)
+	i := int(c.pos.X)
+	j := int(c.pos.Y)
 	var b byte
 	if math.Abs(t) < math.Pi/4 {
 		b = '>'
@@ -257,7 +260,7 @@ func (c *Creech) ViewRegion() Region {
 	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(sideDistance).Pos()
 	backSideStep := frontSideStep.Scale(0.2)
 
-	base := c.Pos()
+	base := c.pos
 	frontLeft := base.Add(c.facing.Scale(viewDistance).Pos()).Add(frontSideStep)
 	frontRight := frontLeft.Sub(frontSideStep.Scale(2.0))
 
@@ -282,7 +285,9 @@ func (c *Creech) Web() []render.DrawCommand {
 	region := c.ViewRegion()
 	viewPoly := render.Poly(region.ClosedPoints())
 	viewPoly.DoFill = true
-	viewPoly.FillColour = render.RGBA{0x80, 0x00, 0x00, 0x80}
+	colour := render.RGBA{0.5, 0.1, 0.1, 0.2}
+	viewPoly.FillColour = colour
+	viewPoly.LineColour = colour
 	return []render.DrawCommand{
 		render.Poly(pts),
 		viewPoly,
@@ -290,7 +295,7 @@ func (c *Creech) Web() []render.DrawCommand {
 }
 
 type Food struct {
-	Entity
+	BaseEntity
 
 	value   float64
 	density float64
@@ -301,12 +306,11 @@ func NewFood(value float64, density float64) *Food {
 		value:   value,
 		density: density,
 	}
-	f.setSize()
 	return f
 }
 
-func (f *Food) setSize() {
-	f.Entity.size = f.value * f.density
+func (f *Food) Size() float64 {
+	return f.value * f.density
 }
 
 func (f *Food) Screen() (int, int, byte) {
@@ -337,6 +341,6 @@ func closedPolygon(sides int, p Pos, r float64) []Pos {
 }
 
 func (f *Food) Web() []render.DrawCommand {
-	pts := closedPolygon(6, f.pos, f.size/2)
+	pts := closedPolygon(6, f.pos, f.Size()/2)
 	return []render.DrawCommand{render.Poly(pts)}
 }
