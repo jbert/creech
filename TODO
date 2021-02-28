@@ -1,7 +1,7 @@
 Now
 ---
 
-- remove x,y from DrawAt
+DONE - remove x,y from DrawAt
     - instead just pass the drawable
     - the drawables know where they are
 
@@ -12,6 +12,11 @@ Now
 
 Soon
 ----
+
+- static cleanup
+    - HTML structure
+    - JS into sep file
+    - ??? pass constants into a config block in JS?
 
 - DRY foodSize
     - make size dependent on value?
@@ -155,4 +160,7 @@ DONE - add in food
     - value, pos
 
 DONE - add in another creech
+
+NO - split polar out from Pos
+    NO - tests? :-)
 

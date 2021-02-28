@@ -44,10 +44,8 @@ func (s *Screen) FinishFrame() error {
 	return nil
 }
 
-func (s *Screen) DrawAt(x, y float64, d Drawable) error {
-	i := int(x)
-	j := int(y)
-	b := d.Screen()
+func (s *Screen) Draw(d Drawable) error {
+	i, j, b := d.Screen()
 	j = (-j + 3*s.height/2) % s.height
 	i = (i + 3*s.width/2) % s.width
 	s.buffer[j][i] = b

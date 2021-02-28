@@ -142,7 +142,7 @@ func (w *Web) FinishFrame() error {
 	}
 }
 
-func (w *Web) DrawAt(x, y float64, d Drawable) error {
+func (w *Web) Draw(d Drawable) error {
 	points := d.Web()
 	select {
 	// Just drop it if we have no connection

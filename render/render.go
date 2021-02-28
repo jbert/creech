@@ -8,10 +8,10 @@ type Renderer interface {
 	Init(w, h float64) error
 	StartFrame() error
 	FinishFrame() error
-	DrawAt(x, y float64, d Drawable) error
+	Draw(d Drawable) error
 }
 
 type Drawable interface {
-	Screen() byte
+	Screen() (int, int, byte)
 	Web() []pos.Pos
 }

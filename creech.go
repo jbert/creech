@@ -111,19 +111,17 @@ func (g *Game) Draw(ticks int) error {
 
 	for i, f := range g.food {
 		dlog("Draw Food %d", i)
-		p := f.Pos()
-		err = r.DrawAt(p.X, p.Y, f)
+		err = r.Draw(f)
 		if err != nil {
-			return fmt.Errorf("DrawAt: %w", err)
+			return fmt.Errorf("Draw: %w", err)
 		}
 	}
 
 	for i, creech := range g.creeches {
 		dlog("Draw Creech %d", i)
-		p := creech.Pos()
-		err = r.DrawAt(p.X, p.Y, creech)
+		err = r.Draw(creech)
 		if err != nil {
-			return fmt.Errorf("DrawAt: %w", err)
+			return fmt.Errorf("Draw: %w", err)
 		}
 	}
 
@@ -213,18 +211,23 @@ func moduloPos(p Pos, worldSize Pos) Pos {
 	return q
 }
 
-func (c *Creech) Screen() byte {
+func (c *Creech) Screen() (int, int, byte) {
 	t := c.facing.Theta
+	i := int(c.Pos().X)
+	j := int(c.Pos().Y)
+	var b byte
 	if math.Abs(t) < math.Pi/4 {
-		return '>'
+		b = '>'
 	} else if math.Pi/4 < t && t < 3*math.Pi/4 {
-		return '^'
+		b = '^'
 	} else if -math.Pi/4 > t && t > -3*math.Pi/4 {
-		return 'v'
+		b = 'v'
 	} else if math.Abs(t) > 3*math.Pi/4 {
-		return '<'
+		b = '<'
+	} else {
+		panic("wtf")
 	}
-	panic("wtf")
+	return i, j, b
 }
 
 func arrow(from, to Pos, headSize float64) []Pos {
@@ -262,16 +265,20 @@ func NewFood(v int, p Pos, size float64) *Food {
 	}
 }
 
-func (f *Food) Screen() byte {
+func (f *Food) Screen() (int, int, byte) {
+	var b byte
 	if f.value < 3 {
-		return '.'
+		b = '.'
 	} else if f.value < 3 {
-		return 'o'
+		b = 'o'
 	} else if f.value < 6 {
-		return 'O'
+		b = 'O'
 	} else {
-		return '*'
+		b = '*'
 	}
+	i := int(f.Pos().X)
+	j := int(f.Pos().Y)
+	return i, j, b
 }
 
 func closedPolygon(sides int, p Pos, r float64) []Pos {
