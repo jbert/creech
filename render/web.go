@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/gorilla/websocket"
-	"github.com/jbert/creech/pos"
 )
 
 type Web struct {
@@ -20,20 +19,7 @@ type Web struct {
 	pixelsPerMetre float64
 
 	rootTemplate *template.Template
-	drawCh       chan drawCommand
-}
-
-type drawType int
-
-const (
-	startFrame drawType = iota
-	drawPoly
-	finishFrame
-)
-
-type drawCommand struct {
-	What   drawType
-	Points []pos.Pos
+	drawCh       chan DrawCommand
 }
 
 //go:embed static/root.html
@@ -47,7 +33,7 @@ func NewWeb(hostport string) *Web {
 		pixelsPerMetre: 20.0,
 
 		rootTemplate: template.Must(template.New("root").Parse(rootTemplateString)),
-		drawCh:       make(chan drawCommand),
+		drawCh:       make(chan DrawCommand),
 	}
 }
 
@@ -85,9 +71,9 @@ func (w *Web) handleRoot(rw http.ResponseWriter, r *http.Request) {
 		int(w.pixelsPerMetre * w.height),
 		w.pixelsPerMetre,
 		"ws",
-		int(startFrame),
-		int(finishFrame),
-		int(drawPoly),
+		int(StartFrame),
+		int(FinishFrame),
+		int(DrawPoly),
 	}
 	err := w.rootTemplate.Execute(rw, tmplData)
 	if err != nil {
@@ -116,24 +102,26 @@ func (w *Web) Init(width, height float64) error {
 func (w *Web) StartFrame() error {
 	select {
 	// Just drop it if we have no connection
-	case w.drawCh <- drawCommand{What: startFrame}:
-		return nil
+	case w.drawCh <- DrawCommand{What: StartFrame}:
 	}
+	return nil
 }
 
 func (w *Web) FinishFrame() error {
 	select {
 	// Just drop it if we have no connection
-	case w.drawCh <- drawCommand{What: finishFrame}:
-		return nil
+	case w.drawCh <- DrawCommand{What: FinishFrame}:
 	}
+	return nil
 }
 
 func (w *Web) Draw(d Drawable) error {
-	points := d.Web()
-	select {
-	// Just drop it if we have no connection
-	case w.drawCh <- drawCommand{What: drawPoly, Points: points}:
-		return nil
+	cmds := d.Web()
+	for _, cmd := range cmds {
+		select {
+		// Just drop it if we have no connection
+		case w.drawCh <- cmd:
+		}
 	}
+	return nil
 }

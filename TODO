@@ -14,14 +14,22 @@ DONE - DRY foodSize
 
 DONE - make food size related to value
     - only store one
-    - lose 'size' in entity?
-    - lose entity?
+    NO - lose 'size' in entity?
+    NO - lose entity?
 
+DONE - allow creeches to return multiple drawcommands
+    - specify line+fill colour
+
+DONE - draw view region
+    DONE - have helpers/ctors for DrawCommand
+        DONE - default colours?
+
+- respect line and fill colours in drawing
 
 - have creech observe
     - get view region
-        - draw region as a filled colour region
-        - NOP on Screen
+    - draw region as a filled colour region
+    - NOP on Screen
 
 -----------------------------------------------------------------
 
@@ -66,6 +74,9 @@ Soon
 
 Maybe
 -----
+
+- improve view region?
+    - side
 
 - entity needs an id?
     - so we can find + remove them?

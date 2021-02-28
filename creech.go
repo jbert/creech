@@ -2,6 +2,7 @@ package creech // import "github.com/jbert/creech"
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -248,9 +249,44 @@ func arrow(from, to Pos, headSize float64) []Pos {
 		to,
 	}
 }
-func (c *Creech) Web() []Pos {
+
+func (c *Creech) ViewRegion() Region {
+	viewDistance := 5.0
+	sideDistance := 3.0
+
+	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(sideDistance).Pos()
+	backSideStep := frontSideStep.Scale(0.2)
+
+	base := c.Pos()
+	frontLeft := base.Add(c.facing.Scale(viewDistance).Pos()).Add(frontSideStep)
+	frontRight := frontLeft.Sub(frontSideStep.Scale(2.0))
+
+	backLeft := base.Add(backSideStep)
+	backRight := backLeft.Sub(backSideStep.Scale(2.0))
+
+	pts := []Pos{
+		backLeft,
+		frontLeft,
+		frontRight,
+		backRight,
+		backLeft,
+	}
+	r := NewRegion(pts)
+	log.Printf("Viewegion: %+v\n", r)
+	return r
+}
+
+func (c *Creech) Web() []render.DrawCommand {
 	dir := c.facing.Pos().Scale(c.size)
-	return arrow(c.pos, c.pos.Add(dir), 0.3)
+	pts := arrow(c.pos, c.pos.Add(dir), 0.3)
+	region := c.ViewRegion()
+	viewPoly := render.Poly(region.ClosedPoints())
+	viewPoly.DoFill = true
+	viewPoly.FillColour = render.RGBA{0x80, 0x00, 0x00, 0x80}
+	return []render.DrawCommand{
+		render.Poly(pts),
+		viewPoly,
+	}
 }
 
 type Food struct {
@@ -300,6 +336,7 @@ func closedPolygon(sides int, p Pos, r float64) []Pos {
 	return pts
 }
 
-func (f *Food) Web() []Pos {
-	return closedPolygon(6, f.pos, f.size/2)
+func (f *Food) Web() []render.DrawCommand {
+	pts := closedPolygon(6, f.pos, f.size/2)
+	return []render.DrawCommand{render.Poly(pts)}
 }
