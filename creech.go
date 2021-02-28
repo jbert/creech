@@ -46,9 +46,10 @@ func (g *Game) AddCreeches() {
 func (g *Game) AddFood() {
 	numFood := 5
 	for i := 0; i < numFood; i++ {
-		value := rand.Intn(10)
-		foodSize := 1.0
-		f := NewFood(value, g.randomEmptyPos(foodSize), foodSize)
+		value := rand.Float64() * 10
+		density := 0.4
+		f := NewFood(value, density)
+		f.SetRandomPos(g)
 		g.food = append(g.food, f)
 	}
 }
@@ -142,6 +143,10 @@ func (g *Game) Draw(ticks int) error {
 type Entity struct {
 	pos  Pos
 	size float64
+}
+
+func (e *Entity) SetRandomPos(g *Game) {
+	e.pos = g.randomEmptyPos(e.size)
 }
 
 func (e *Entity) Pos() Pos {
@@ -251,18 +256,21 @@ func (c *Creech) Web() []Pos {
 type Food struct {
 	Entity
 
-	value int
+	value   float64
+	density float64
 }
 
-func NewFood(v int, p Pos, size float64) *Food {
-	foodSize := 1.0
-	return &Food{
-		Entity: Entity{
-			pos:  p,
-			size: foodSize,
-		},
-		value: v,
+func NewFood(value float64, density float64) *Food {
+	f := &Food{
+		value:   value,
+		density: density,
 	}
+	f.setSize()
+	return f
+}
+
+func (f *Food) setSize() {
+	f.Entity.size = f.value * f.density
 }
 
 func (f *Food) Screen() (int, int, byte) {

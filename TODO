@@ -9,25 +9,29 @@ DONE - unpick the websocket loop into a function
     - and use defer for close
     - no need! helper function!
 
+DONE - DRY foodSize
+    - make size dependent on value?
+
+DONE - make food size related to value
+    - only store one
+    - lose 'size' in entity?
+    - lose entity?
+
+
+- have creech observe
+    - get view region
+        - draw region as a filled colour region
+        - NOP on Screen
+
 -----------------------------------------------------------------
 
 Soon
 ----
 
-- static cleanup
-    - HTML structure
-    - JS into sep file
-    - ??? pass constants into a config block in JS?
+- foodDensity (size per value) is a property of the kind of food
+    - arg to food ctor
 
-- DRY foodSize
-    - make size dependent on value?
-
-- make food size related to value
-    - only store one
-    - lose 'size' in entity?
-    - lose entity?
-
-- have creech observe
+- use view region
     - gets a list of []Food, []Creech
         - define "Region"
             - (poly or assembly of triangles)
@@ -40,12 +44,23 @@ Soon
     - also on the creech abilities
         - genes, running
 
+- move constants into method call on Creech
+    - view distance
+    - size
+    - turn speed max
+    - run speed max
+
 - MakePlan depends on observation
     - do we want to reify plan?
         - type Plan interface {
             StillPossible() bool
             Execute()
         }
+
+- static cleanup
+    - HTML structure
+    - JS into sep file
+    - ??? pass constants into a config block in JS?
 
 -----------------------------------------------------------------
 
