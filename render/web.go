@@ -2,7 +2,6 @@ package render
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -64,21 +63,9 @@ func (w *Web) handleWebSocket(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for cmd := range w.drawCh {
-		wsWriter, err := conn.NextWriter(websocket.TextMessage)
+		err = conn.WriteJSON(cmd)
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("Can't get websocket writer: %s", err), http.StatusInternalServerError)
-			return
-		}
-		jsonCmd, err := json.Marshal(cmd)
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("Can't marshal to JSON: %s", err), http.StatusInternalServerError)
-			err = wsWriter.Close()
-			return
-		}
-		wsWriter.Write(jsonCmd)
-		err = wsWriter.Close()
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("Can't close websocket writer: %s", err), http.StatusInternalServerError)
+			http.Error(rw, fmt.Sprintf("Can't writeJSON to websocket: %s", err), http.StatusInternalServerError)
 			return
 		}
 	}

@@ -5,8 +5,9 @@ DONE - remove x,y from DrawAt
     - instead just pass the drawable
     - the drawables know where they are
 
-- unpick the websocket loop into a function
+DONE - unpick the websocket loop into a function
     - and use defer for close
+    - no need! helper function!
 
 -----------------------------------------------------------------
 
