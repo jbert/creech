@@ -22,7 +22,7 @@ type Game struct {
 
 func NewGame(r render.Renderer, tickDur time.Duration) *Game {
 	return &Game{
-		size:     Pos{20, 20},
+		size:     Pos{40, 40},
 		tickDur:  tickDur,
 		renderer: r,
 	}
@@ -146,6 +146,14 @@ type Entity struct {
 	size float64
 }
 
+func (e *Entity) Pos() Pos {
+	return e.pos
+}
+
+func (e *Entity) Size() float64 {
+	return e.size
+}
+
 type Creech struct {
 	Entity
 
@@ -167,14 +175,6 @@ func NewCreech(name string, pos Pos) *Creech {
 
 func (c *Creech) String() string {
 	return fmt.Sprintf("%s: %s %s", c.name, c.pos, c.facing)
-}
-
-func (c *Creech) Pos() Pos {
-	return c.pos
-}
-
-func (c *Creech) Size() float64 {
-	return c.size
 }
 
 func (c *Creech) MakePlan(g *Game) {
@@ -260,14 +260,6 @@ func NewFood(v int, p Pos, size float64) *Food {
 		},
 		value: v,
 	}
-}
-
-func (f *Food) Size() float64 {
-	return f.size
-}
-
-func (f *Food) Pos() Pos {
-	return f.pos
 }
 
 func (f *Food) Screen() byte {
