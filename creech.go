@@ -9,6 +9,7 @@ import (
 
 	"github.com/jbert/creech/render"
 
+	// pos.Pos shorthand
 	. "github.com/jbert/creech/pos"
 )
 
@@ -76,10 +77,11 @@ RANDOM_POSITION:
 }
 
 func (g *Game) Run() error {
-	tickCh := time.Tick(g.tickDur)
+	ticker := time.NewTicker(g.tickDur)
+	defer ticker.Stop()
 	ticks := 0
 
-	for range tickCh {
+	for range ticker.C {
 		err := g.Draw(ticks)
 		if err != nil {
 			return fmt.Errorf("Can't Draw: %w", err)
@@ -141,6 +143,21 @@ func (g *Game) Draw(ticks int) error {
 	return nil
 }
 
+func (g *Game) Observe(r Region) []Entity {
+	var es []Entity
+	for _, c := range g.creeches {
+		if r.Contains(c.Pos()) {
+			es = append(es, c)
+		}
+	}
+	for _, f := range g.food {
+		if r.Contains(f.Pos()) {
+			es = append(es, f)
+		}
+	}
+	return es
+}
+
 type Entity interface {
 	Pos() Pos
 	Size() float64
@@ -164,6 +181,8 @@ type Creech struct {
 
 	name   string
 	facing Polar
+
+	plan func()
 }
 
 func NewCreech(name string, pos Pos) *Creech {
@@ -185,18 +204,84 @@ func (c *Creech) String() string {
 }
 
 func (c *Creech) MakePlan(g *Game) {
-	//	region := c.ViewRegion()
-	//	food, creeches := g.Observe(region)
+	region := c.ViewRegion()
+	entities := g.Observe(region)
+	c.plan = c.makeRandomPlan()
+	for _, ei := range entities {
+		switch e := ei.(type) {
+		case *Food:
+			log.Printf("=============================+ EAT =================")
+			c.plan = func() {
+				c.TurnToward(e)
+			}
+		case *Creech:
+			log.Printf("=============================+ FLEE =================")
+			c.plan = func() {
+				c.TurnAway(e)
+				dist := c.maxMove() + rand.Float64()
+				c.pos = c.pos.Move(c.facing.Scale(dist))
+			}
+		default:
+			panic(fmt.Sprintf("wtf: %T", ei))
+		}
+	}
 }
 
 func (c *Creech) DoPlan() {
-	r := rand.Intn(10)
-	if r < 4 {
-		turn := (rand.Float64() - 0.5) * 0.5 * math.Pi
-		c.facing = c.facing.Turn(turn)
+	c.plan()
+}
+
+func (c *Creech) TurnAway(e Entity) {
+	c.turnHelper(e, false)
+}
+
+func (c *Creech) TurnToward(e Entity) {
+	c.turnHelper(e, true)
+}
+
+func (c *Creech) turnHelper(e Entity, towards bool) {
+	joiningLine := e.Pos().Sub(c.pos).Polar().Normalise()
+	dTheta := joiningLine.Theta - c.pos.Polar().Theta
+
+	if towards {
+		dTheta = -dTheta
 	}
-	dist := 0.5 + rand.Float64()
-	c.pos = c.pos.Move(c.facing.Scale(dist))
+
+	// Want to Keep sign (and make it bigger)
+	if dTheta == 0 {
+		dTheta = 1
+	}
+	dTheta /= dTheta
+	dTheta *= c.maxTurn()
+	c.facing = c.facing.Turn(dTheta)
+}
+
+func (c *Creech) maxMove() float64 {
+	return 0.5
+}
+
+func (c *Creech) maxTurn() float64 {
+	return math.Pi * 0.25
+}
+
+func (c *Creech) viewDistance() float64 {
+	return 5.0
+}
+
+func (c *Creech) sideDistance() float64 {
+	return 2.0
+}
+
+func (c *Creech) makeRandomPlan() func() {
+	return func() {
+		r := rand.Intn(10)
+		if r < 4 {
+			turn := (rand.Float64() - 0.5) * c.maxTurn()
+			c.facing = c.facing.Turn(turn)
+		}
+		dist := c.maxMove() + rand.Float64()
+		c.pos = c.pos.Move(c.facing.Scale(dist))
+	}
 }
 
 func (c *Creech) ModuloPos(worldSize Pos) {
@@ -254,14 +339,11 @@ func arrow(from, to Pos, headSize float64) []Pos {
 }
 
 func (c *Creech) ViewRegion() Region {
-	viewDistance := 5.0
-	sideDistance := 3.0
-
-	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(sideDistance).Pos()
+	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(c.sideDistance()).Pos()
 	backSideStep := frontSideStep.Scale(0.2)
 
 	base := c.pos
-	frontLeft := base.Add(c.facing.Scale(viewDistance).Pos()).Add(frontSideStep)
+	frontLeft := base.Add(c.facing.Scale(c.viewDistance()).Pos()).Add(frontSideStep)
 	frontRight := frontLeft.Sub(frontSideStep.Scale(2.0))
 
 	backLeft := base.Add(backSideStep)
@@ -317,9 +399,9 @@ func (f *Food) Screen() (int, int, byte) {
 	var b byte
 	if f.value < 3 {
 		b = '.'
-	} else if f.value < 3 {
-		b = 'o'
 	} else if f.value < 6 {
+		b = 'o'
+	} else if f.value < 9 {
 		b = 'O'
 	} else {
 		b = '*'

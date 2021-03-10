@@ -1,41 +1,32 @@
 Now
 ---
 
-DONE - remove x,y from DrawAt
-    - instead just pass the drawable
-    - the drawables know where they are
+DONE - test region
+    - test smallest granularity first
+    - test bottom up
 
-DONE - unpick the websocket loop into a function
-    - and use defer for close
-    - no need! helper function!
+- sort observe list, nearest first
+    - act on first
+    - when turning towards, don't turn full amount unless needed
 
-DONE - DRY foodSize
-    - make size dependent on value?
+- save/load game state
 
-DONE - make food size related to value
-    - only store one
-    NO - lose 'size' in entity?
-    NO - lose entity?
+- reload:
+    - reconect websocket on disconnect (loop)
+    - send version (or random nonce) as startup websocket message
+    - refresh if doesn't match
 
-DONE - allow creeches to return multiple drawcommands
-    - specify line+fill colour
+- refactor creech Move/Turn
+    - cases in makePlan
+    - full speed
+        - momentum and acceleration
 
-DONE - draw view region
-    DONE - have helpers/ctors for DrawCommand
-        DONE - default colours?
+- have save+exit http endpt / signal handler
 
-DONE - fix error logging in websocket handler
-    - repro by making json encode fail
-
-OK - JS gradual slowdown over time?
-    - try animation frame?
-
-DONE - respect line and fill colours in drawing
-
-DONE - have creech observe
-    DONE - get view region
-    DONE - draw region as a filled colour region
-    DONE - NOP on Screen
+- add inotify
+    - build
+    - shutdown
+    - start (with game state load) script in repo
 
 - use view region
     - gets a list of []Food, []Creech (and distance to each)
@@ -48,17 +39,6 @@ DONE - have creech observe
     DONE - what it sees depends which way it is facing
     - also on the creech abilities
         - genes, running
-
-DONE - make 'Entity' an interface
-    DONE - BaseEntity implements, Creech and Food embed
-        - No! Food Calculates size
-    DONE - Pos, Size
-
-- Observe returns []Entity
-    - can type-switch return list
-
-DONE - foodDensity (size per value) is a property of the kind of food
-    - arg to food ctor
 
 -----------------------------------------------------------------
 
@@ -209,4 +189,54 @@ DONE - add in another creech
 
 NO - split polar out from Pos
     NO - tests? :-)
+
+Mon  1 Mar 07:24:32 GMT 2021
+----------------------------
+
+DONE - remove x,y from DrawAt
+    - instead just pass the drawable
+    - the drawables know where they are
+
+DONE - unpick the websocket loop into a function
+    - and use defer for close
+    - no need! helper function!
+
+DONE - DRY foodSize
+    - make size dependent on value?
+
+DONE - make food size related to value
+    - only store one
+    NO - lose 'size' in entity?
+    NO - lose entity?
+
+DONE - allow creeches to return multiple drawcommands
+    - specify line+fill colour
+
+DONE - draw view region
+    DONE - have helpers/ctors for DrawCommand
+        DONE - default colours?
+
+DONE - fix error logging in websocket handler
+    - repro by making json encode fail
+
+OK - JS gradual slowdown over time?
+    - try animation frame?
+
+DONE - respect line and fill colours in drawing
+
+DONE - have creech observe
+    DONE - get view region
+    DONE - draw region as a filled colour region
+    DONE - NOP on Screen
+
+DONE - make 'Entity' an interface
+    DONE - BaseEntity implements, Creech and Food embed
+        - No! Food Calculates size
+    DONE - Pos, Size
+
+DONE - Observe returns []Entity
+    - can type-switch return list
+
+DONE - foodDensity (size per value) is a property of the kind of food
+    - arg to food ctor
 

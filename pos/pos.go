@@ -5,8 +5,17 @@ import (
 	"math"
 )
 
+func approxEqual(a, b float64) bool {
+	eps := 1e-5
+	return math.Abs(a-b) < eps
+}
+
 type Pos struct {
 	X, Y float64
+}
+
+func (p Pos) Equals(q Pos) bool {
+	return approxEqual(p.X, q.X) && approxEqual(p.Y, q.Y)
 }
 
 func (p Pos) Unit() Pos {
@@ -29,10 +38,10 @@ func (p Pos) Scale(r float64) Pos {
 }
 
 func (p Pos) Near(q Pos, r float64) bool {
-	return p.DistSquard(q) < r*r
+	return p.LengthSquared(q) < r*r
 }
 
-func (p Pos) DistSquard(q Pos) float64 {
+func (p Pos) LengthSquared(q Pos) float64 {
 	dx := p.X - q.X
 	dy := p.Y - q.Y
 	return dx*dx + dy*dy
