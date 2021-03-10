@@ -143,15 +143,15 @@ func (g *Game) Draw(ticks int) error {
 	return nil
 }
 
-func (g *Game) Observe(r Region) []Entity {
+func (g *Game) Observe(r Region, excludeID int64) []Entity {
 	var es []Entity
 	for _, c := range g.creeches {
-		if r.Contains(c.Pos()) {
+		if c.ID() != excludeID && r.Contains(c.Pos()) {
 			es = append(es, c)
 		}
 	}
 	for _, f := range g.food {
-		if r.Contains(f.Pos()) {
+		if f.ID() != excludeID && r.Contains(f.Pos()) {
 			es = append(es, f)
 		}
 	}
@@ -159,16 +159,29 @@ func (g *Game) Observe(r Region) []Entity {
 }
 
 type Entity interface {
+	ID() int64
 	Pos() Pos
 	Size() float64
 }
 
 type BaseEntity struct {
+	id  int64
 	pos Pos
+}
+
+func NewBaseEntity(p Pos) BaseEntity {
+	return BaseEntity{
+		pos: p,
+		id:  rand.Int63(),
+	}
 }
 
 func (be *BaseEntity) SetRandomPos(g *Game, size float64) {
 	be.pos = g.randomEmptyPos(size)
+}
+
+func (be *BaseEntity) ID() int64 {
+	return be.id
 }
 
 func (be *BaseEntity) Pos() Pos {
@@ -191,7 +204,7 @@ func NewCreech(name string, pos Pos) *Creech {
 		name:       name,
 		size:       creechSize,
 		facing:     North,
-		BaseEntity: BaseEntity{pos},
+		BaseEntity: NewBaseEntity(pos),
 	}
 }
 
@@ -205,22 +218,24 @@ func (c *Creech) String() string {
 
 func (c *Creech) MakePlan(g *Game) {
 	region := c.ViewRegion()
-	entities := g.Observe(region)
+	entities := g.Observe(region, c.ID())
 	c.plan = c.makeRandomPlan()
-	for _, ei := range entities {
+	for i, ei := range entities {
 		switch e := ei.(type) {
 		case *Food:
-			log.Printf("=============================+ EAT =================")
+			log.Printf("%d ============================= EAT =================", i)
 			c.plan = func() {
 				c.TurnToward(e)
 			}
+			break
 		case *Creech:
-			log.Printf("=============================+ FLEE =================")
+			log.Printf("%d ============================= FLEE =================", i)
 			c.plan = func() {
 				c.TurnAway(e)
-				dist := c.maxMove() + rand.Float64()
+				dist := c.maxMove() * rand.Float64()
 				c.pos = c.pos.Move(c.facing.Scale(dist))
 			}
+			break
 		default:
 			panic(fmt.Sprintf("wtf: %T", ei))
 		}
@@ -265,11 +280,11 @@ func (c *Creech) maxTurn() float64 {
 }
 
 func (c *Creech) viewDistance() float64 {
-	return 5.0
+	return 10.0
 }
 
 func (c *Creech) sideDistance() float64 {
-	return 2.0
+	return 5.0
 }
 
 func (c *Creech) makeRandomPlan() func() {
@@ -385,8 +400,9 @@ type Food struct {
 
 func NewFood(value float64, density float64) *Food {
 	f := &Food{
-		value:   value,
-		density: density,
+		BaseEntity: NewBaseEntity(Pos{0, 0}),
+		value:      value,
+		density:    density,
 	}
 	return f
 }

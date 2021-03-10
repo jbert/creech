@@ -1,0 +1,26 @@
+run:
+  tests: true
+
+output:
+  format: line-number
+
+linters:
+  enable:
+    - govet
+    - golint
+    - errcheck
+    - vetshadow
+
+linters-settings:
+  govet:
+    check-shadowing: true
+
+issues:
+  # I think Pos{X, Y} is better than the alternatives
+  exclude:
+    # Only one of these will take effect, because yaml?
+    #    - "composite literal uses unkeyed fields.*\n[ \t]Pos"
+
+    #- "should not use dot imports.*\n.*github.com/jbert/creech/pos"
+
+    #- "does not occur in the wild"

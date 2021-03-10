@@ -5,6 +5,10 @@ DONE - test region
     - test smallest granularity first
     - test bottom up
 
+DONE - add ids to entities
+    - factory to make with state?
+    DONE - check in "plan" that we don't react to ourselves (same id)
+
 - sort observe list, nearest first
     - act on first
     - when turning towards, don't turn full amount unless needed
