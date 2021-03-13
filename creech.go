@@ -49,8 +49,7 @@ func (g *Game) AddFood() {
 	numFood := 5
 	for i := 0; i < numFood; i++ {
 		value := rand.Float64() * 10
-		density := 0.4
-		f := NewFood(value, density)
+		f := NewFood(value)
 		f.SetRandomPos(g, f.Size())
 		g.food = append(g.food, f)
 	}
@@ -94,8 +93,10 @@ func (g *Game) Run() error {
 
 func (g *Game) Update() {
 	for _, creech := range g.creeches {
-		creech.ModuloPos(g.size)
-		creech.MakePlan(g)
+		if !creech.Dead() {
+			creech.ModuloPos(g.size)
+			creech.MakePlan(g)
+		}
 	}
 	for _, creech := range g.creeches {
 		creech.DoPlan()
@@ -191,10 +192,15 @@ func (be *BaseEntity) Pos() Pos {
 type Plan struct {
 	name   string // for display
 	action func()
+	cost   float64
 }
 
 func NewPlan(name string, action func()) *Plan {
-	return &Plan{name: name, action: action}
+	return &Plan{name: name, action: action, cost: 0.01}
+}
+
+func (p *Plan) Cost() float64 {
+	return p.cost
 }
 
 func (p *Plan) Execute() {
@@ -208,17 +214,24 @@ type Creech struct {
 	name   string
 	facing Polar
 
+	food float64
 	plan *Plan
 }
 
 func NewCreech(name string, pos Pos) *Creech {
 	creechSize := 1.0
-	return &Creech{
+	c := &Creech{
 		name:       name,
 		size:       creechSize,
 		facing:     North,
 		BaseEntity: NewBaseEntity(pos),
 	}
+	c.food = c.maxFood() / 2
+	return c
+}
+
+func (c *Creech) Dead() bool {
+	return c.food <= 0
 }
 
 func (c *Creech) Size() float64 {
@@ -226,10 +239,20 @@ func (c *Creech) Size() float64 {
 }
 
 func (c *Creech) String() string {
-	return fmt.Sprintf("%s: %s %s", c.name, c.pos, c.facing)
+	return fmt.Sprintf("%s: %5.2f %s %s", c.name, c.food, c.pos, c.facing)
+}
+
+func (c *Creech) Full() bool {
+	return c.food >= c.maxFood()
 }
 
 func (c *Creech) Eat(f *Food) {
+	biteSize := c.biteSize()
+	if biteSize > c.maxFood()-c.food {
+		biteSize = c.maxFood() - c.food
+	}
+	f.Consume(biteSize)
+	c.food += biteSize
 }
 
 func (c *Creech) MakePlan(g *Game) {
@@ -243,6 +266,9 @@ func (c *Creech) MakePlan(g *Game) {
 	for _, ei := range entities {
 		switch e := ei.(type) {
 		case *Food:
+			if c.Full() {
+				continue
+			}
 			c.plan = NewPlan("FOOD", func() {
 				c.TurnToward(e)
 
@@ -268,7 +294,12 @@ func (c *Creech) MakePlan(g *Game) {
 }
 
 func (c *Creech) DoPlan() {
+	if c.plan == nil {
+		return
+	}
 	c.plan.Execute()
+	c.food -= c.plan.cost
+	c.plan = nil
 }
 
 func (c *Creech) ApproachTo(e Entity, d float64) {
@@ -338,6 +369,14 @@ func turnHelper(facing Polar, p Pos, target Pos, maxTurn float64, towards bool) 
 	return dTheta
 }
 
+func (c *Creech) biteSize() float64 {
+	return 1.5
+}
+
+func (c *Creech) maxFood() float64 {
+	return 10
+}
+
 func (c *Creech) maxMove() float64 {
 	return 0.5
 }
@@ -396,7 +435,9 @@ func (c *Creech) Screen() (int, int, byte) {
 	i := int(c.pos.X)
 	j := int(c.pos.Y)
 	var b byte
-	if math.Abs(t) < math.Pi/4 {
+	if c.Dead() {
+		b = 'X'
+	} else if math.Abs(t) < math.Pi/4 {
 		b = '>'
 	} else if math.Pi/4 < t && t < 3*math.Pi/4 {
 		b = '^'
@@ -449,7 +490,28 @@ func (c *Creech) ViewRegion() Region {
 	return r
 }
 
+func drawX(p Pos, facing Polar, size float64) []Pos {
+	step := facing.Scale(size).Pos()
+	sideStep := facing.Turn(math.Pi / 2).Scale(size).Pos()
+	return []Pos{
+		p,
+		p.Add(step),
+		p,
+		p.Add(sideStep),
+		p,
+		p.Sub(step),
+		p,
+		p.Sub(sideStep),
+	}
+}
+
 func (c *Creech) Web() []render.DrawCommand {
+	if c.Dead() {
+		pts := drawX(c.pos, c.facing, c.size)
+		return []render.DrawCommand{
+			render.Poly(pts),
+		}
+	}
 	dir := c.facing.Pos().Scale(c.size)
 	pts := arrow(c.pos, c.pos.Add(dir), 0.3)
 	region := c.ViewRegion()
@@ -467,21 +529,23 @@ func (c *Creech) Web() []render.DrawCommand {
 type Food struct {
 	BaseEntity
 
-	value   float64
-	density float64
+	value float64
 }
 
-func NewFood(value float64, density float64) *Food {
+func NewFood(value float64) *Food {
 	f := &Food{
 		BaseEntity: NewBaseEntity(Pos{0, 0}),
 		value:      value,
-		density:    density,
 	}
 	return f
 }
 
+func (f *Food) Consume(bite float64) {
+	f.value -= bite
+}
+
 func (f *Food) Size() float64 {
-	return f.value * f.density
+	return f.value
 }
 
 func (f *Food) Screen() (int, int, byte) {

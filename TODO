@@ -8,31 +8,64 @@ Now
         - creech loses food value over time
 
 - add genotype and phenotype
+
     - genotype:
         map[string]float64
         get via method which checks string
         set only at ctor time with full set
+
     - phenotype calls into genotype to calc derived characteristics
         - do we also want environmental effects to affect phenotype?
             - (nutrition history?)
             - current heat levels (fur length)
                 - the amount of phenotypic variability can be a genomic trait
+
+    - actually need methods on creech to return these values
+        - or is this built into phenotype?
+        - could be modified by creech status (hunger)
+
+    - nonlinear energy cost for speed?
+        - jog don't run most of the time
+        - run away/towards creeches?
+
     - try and make each genomic value have positives and negatives
+
+- make viewRegion respect size of food being searched for
+
+- have plans stringify so we can display
+    - include parameters in the plan
+    - requires plan types, not just func
+    - or a string form!
+
+- bugs?
+    - eating makes things bigger sometimes!?
+    - more distant creech triggers flee when eating?
+    - visual approach distance for large food has a bigger gap than small?
+        - draw radius?
 
 -----------------------------------------------------------------
 
 Soon
 ----
 
+- plans:
+    - add energy cost to a plan
+        - can be based on intensity of effort in plan
+
+    - have available energy influence choice of plan
+        - add importance to plan
+            - have importance and energy cost influence
+                - eating is more important when you are hungry
+        - both:
+            - what plan to make
+            - the intensity of effort in the plan
+        - can construct many plans!
+            - filter by energy costs
+
 - what to do if two creeches approach same food?
     - eat?
     - flee?
     - can we add 'fight?'
-
-- bugs?
-    - more distant creech triggers flee when eating?
-    - visual approach distance for large food has a bigger gap than small?
-        - draw radius?
 
 - have view work over torus boundaries
     - make up multiple regions?
