@@ -33,6 +33,14 @@ func (p Pos) Length() float64 {
 	return math.Sqrt(p.X*p.X + p.Y*p.Y)
 }
 
+func (p Pos) PolarTo(q Pos) Polar {
+	return q.Sub(p).Polar()
+}
+
+func (p Pos) DistanceTo(q Pos) float64 {
+	return math.Sqrt(p.DistanceToSquared(q))
+}
+
 func (p Pos) DistanceToSquared(q Pos) float64 {
 	dx := p.X - q.X
 	dy := p.Y - q.Y

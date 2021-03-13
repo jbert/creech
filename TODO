@@ -20,6 +20,17 @@ DONE - sort observe list, nearest first
     - act on first
     DONE - when turning towards, don't turn full amount unless needed
 
+- eating
+    DONE - move to eating distance for food
+    - if at eating distance "eat"
+    - eat transfers food value from food to creech
+        - creech loses food value over time
+
+- have view work over torus boundaries
+    - make up multiple regions?
+
+DONE - make 'plan' an abstraction (name, func) so it can be displayed?
+
 - save/load game state
 
 - reload:
