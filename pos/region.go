@@ -164,6 +164,23 @@ func (ls LineSegment) SegmentIntersectsLine(ray LineSegment) bool {
 	return ok1 && ok2
 }
 
+func (r Region) Translate(v Pos) Region {
+	pts := make([]Pos, len(r.points))
+	for i := range r.points {
+		pts[i] = r.points[i].Add(v)
+	}
+	return NewRegion(pts)
+}
+
+func (r Region) Overlaps(s Region) bool {
+	for _, p := range s.ClosedPoints() {
+		if r.Contains(p) {
+			return true
+		}
+	}
+	return false
+}
+
 func (r Region) Contains(q Pos) bool {
 	// Take a line segment "to infinity"
 	big := 1e7

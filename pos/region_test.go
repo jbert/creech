@@ -57,6 +57,36 @@ func TestBoundingRectContains(t *testing.T) {
 	}
 }
 
+func TestRegionOverlaps(t *testing.T) {
+	unitSquare := NewRegion(
+		[]Pos{
+			Pos{0, 0},
+			Pos{1, 0},
+			Pos{1, 1},
+			Pos{0, 1},
+		},
+	)
+
+	testCases := []struct {
+		r, s     Region
+		expected bool
+	}{
+		{unitSquare, unitSquare, true},
+		{unitSquare, unitSquare.Translate(Pos{0.5, 0}), true},
+		{unitSquare, unitSquare.Translate(Pos{0, 0.5}), true},
+		{unitSquare, unitSquare.Translate(Pos{1, 0.5}), true},
+		{unitSquare, unitSquare.Translate(Pos{2, 0.5}), false},
+	}
+
+	for _, tc := range testCases {
+		t.Logf("TC: %v", tc)
+		got := tc.r.Overlaps(tc.s)
+		if got != tc.expected {
+			t.Fatalf("Got %v expected %v", got, tc.expected)
+		}
+	}
+}
+
 func TestRegionContains(t *testing.T) {
 	unitSquare := NewRegion(
 		[]Pos{
