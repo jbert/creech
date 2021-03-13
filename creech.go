@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jbert/creech/render"
@@ -24,6 +25,17 @@ type Game struct {
 type State struct {
 	creeches []*Creech
 	food     []*Food
+}
+
+func (s *State) String() string {
+	var lines []string
+	for _, c := range s.creeches {
+		lines = append(lines, c.String())
+	}
+	for _, f := range s.food {
+		lines = append(lines, f.String())
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (s *State) AddCreeches() {
@@ -96,10 +108,10 @@ func (s *State) Draw(r render.Renderer, ticks int) error {
 		return fmt.Errorf("FinishFrame: %w", err)
 	}
 
-	fmt.Printf("%d ticks\n", ticks)
-	for _, creech := range s.creeches {
-		fmt.Printf("%s\n", creech)
-	}
+	fmt.Printf("%d ticks\n%s\n\n", ticks, s)
+	//	for _, creech := range s.creeches {
+	//		fmt.Printf("%s\n", creech)
+	//	}
 
 	return nil
 }
@@ -528,6 +540,10 @@ func NewFood(value float64) *Food {
 		value:      value,
 	}
 	return f
+}
+
+func (f *Food) String() string {
+	return fmt.Sprintf("%5.2f: %s", f.value, f.Pos())
 }
 
 func (f *Food) Consume(bite float64) {
