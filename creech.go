@@ -14,59 +14,48 @@ import (
 )
 
 type Game struct {
-	size     Pos
-	tickDur  time.Duration
-	renderer render.Renderer
+	worldSize Pos
+	tickDur   time.Duration
+	renderer  render.Renderer
 
+	state State
+}
+
+type State struct {
 	creeches []*Creech
 	food     []*Food
 }
 
-func NewGame(r render.Renderer, tickDur time.Duration) *Game {
-	return &Game{
-		size:     Pos{40, 40},
-		tickDur:  tickDur,
-		renderer: r,
-	}
-}
-
-func (g *Game) Init() error {
-
-	g.AddCreeches()
-	g.AddFood()
-	return g.renderer.Init(g.size.X, g.size.Y)
-}
-
-func (g *Game) AddCreeches() {
+func (s *State) AddCreeches() {
 	bob := NewCreech("bob", Pos{0, 0})
-	g.creeches = append(g.creeches, bob)
+	s.creeches = append(s.creeches, bob)
 
 	alice := NewCreech("alice", Pos{2, 2})
-	g.creeches = append(g.creeches, alice)
+	s.creeches = append(s.creeches, alice)
 }
 
-func (g *Game) AddFood() {
+func (s *State) AddFood(worldSize Pos) {
 	numFood := 5
 	for i := 0; i < numFood; i++ {
 		value := rand.Float64() * 10
 		f := NewFood(value)
-		f.SetRandomPos(g, f.Size())
-		g.food = append(g.food, f)
+		f.SetRandomPos(s, worldSize, f.Size())
+		s.food = append(s.food, f)
 	}
 }
 
 // TODO: at a certain point, we'll want to avoid looping over everything to do this
-func (g *Game) randomEmptyPos(size float64) Pos {
+func (s *State) randomEmptyPos(worldSize Pos, size float64) Pos {
 RANDOM_POSITION:
 	for {
-		p := Pos{rand.Float64() * g.size.X, rand.Float64() * g.size.Y}
-		p = moduloPos(p, g.size)
-		for _, c := range g.creeches {
+		p := Pos{rand.Float64() * worldSize.X, rand.Float64() * worldSize.Y}
+		p = moduloPos(p, worldSize)
+		for _, c := range s.creeches {
 			if c.pos.Near(p, c.Size()+size) {
 				continue RANDOM_POSITION
 			}
 		}
-		for _, f := range g.food {
+		for _, f := range s.food {
 			if f.Pos().Near(p, f.Size()+size) {
 				continue RANDOM_POSITION
 			}
@@ -75,36 +64,7 @@ RANDOM_POSITION:
 	}
 }
 
-func (g *Game) Run() error {
-	ticker := time.NewTicker(g.tickDur)
-	defer ticker.Stop()
-	ticks := 0
-
-	for range ticker.C {
-		err := g.Draw(ticks)
-		if err != nil {
-			return fmt.Errorf("Can't Draw: %w", err)
-		}
-		ticks++
-		g.Update()
-	}
-	return nil
-}
-
-func (g *Game) Update() {
-	for _, creech := range g.creeches {
-		if !creech.Dead() {
-			creech.ModuloPos(g.size)
-			creech.MakePlan(g)
-		}
-	}
-	for _, creech := range g.creeches {
-		creech.DoPlan()
-	}
-}
-
-func (g *Game) Draw(ticks int) error {
-	r := g.renderer
+func (s *State) Draw(r render.Renderer, ticks int) error {
 	dlog := func(s string, args ...interface{}) {
 		//		log.Printf(s, args...)
 	}
@@ -114,7 +74,7 @@ func (g *Game) Draw(ticks int) error {
 		return fmt.Errorf("StartFrame: %w", err)
 	}
 
-	for i, f := range g.food {
+	for i, f := range s.food {
 		dlog("Draw Food %d", i)
 		err = r.Draw(f)
 		if err != nil {
@@ -122,7 +82,7 @@ func (g *Game) Draw(ticks int) error {
 		}
 	}
 
-	for i, creech := range g.creeches {
+	for i, creech := range s.creeches {
 		dlog("Draw Creech %d", i)
 		err = r.Draw(creech)
 		if err != nil {
@@ -137,21 +97,63 @@ func (g *Game) Draw(ticks int) error {
 	}
 
 	fmt.Printf("%d ticks\n", ticks)
-	for _, creech := range g.creeches {
+	for _, creech := range s.creeches {
 		fmt.Printf("%s\n", creech)
 	}
 
 	return nil
 }
 
+func NewGame(r render.Renderer, tickDur time.Duration) *Game {
+	return &Game{
+		worldSize: Pos{40, 40},
+		tickDur:   tickDur,
+		renderer:  r,
+	}
+}
+
+func (g *Game) Init() error {
+	g.state.AddCreeches()
+	g.state.AddFood(g.worldSize)
+	return g.renderer.Init(g.worldSize.X, g.worldSize.Y)
+}
+
+func (g *Game) Run() error {
+	ticker := time.NewTicker(g.tickDur)
+	defer ticker.Stop()
+	ticks := 0
+
+	for range ticker.C {
+		err := g.state.Draw(g.renderer, ticks)
+		if err != nil {
+			return fmt.Errorf("Can't Draw: %w", err)
+		}
+		ticks++
+		g.Update()
+	}
+	return nil
+}
+
+func (g *Game) Update() {
+	for _, creech := range g.state.creeches {
+		if !creech.Dead() {
+			creech.ModuloPos(g.worldSize)
+			creech.MakePlan(g)
+		}
+	}
+	for _, creech := range g.state.creeches {
+		creech.DoPlan()
+	}
+}
+
 func (g *Game) Observe(r Region, excludeID int64) []Entity {
 	var es []Entity
-	for _, c := range g.creeches {
+	for _, c := range g.state.creeches {
 		if c.ID() != excludeID && r.Contains(c.Pos()) {
 			es = append(es, c)
 		}
 	}
-	for _, f := range g.food {
+	for _, f := range g.state.food {
 		if f.ID() != excludeID && r.Contains(f.Pos()) {
 			es = append(es, f)
 		}
@@ -177,8 +179,8 @@ func NewBaseEntity(p Pos) BaseEntity {
 	}
 }
 
-func (be *BaseEntity) SetRandomPos(g *Game, size float64) {
-	be.pos = g.randomEmptyPos(size)
+func (be *BaseEntity) SetRandomPos(s *State, worldSize Pos, size float64) {
+	be.pos = s.randomEmptyPos(worldSize, size)
 }
 
 func (be *BaseEntity) ID() int64 {
@@ -530,6 +532,7 @@ func NewFood(value float64) *Food {
 
 func (f *Food) Consume(bite float64) {
 	f.value -= bite
+	//	fmt.Printf("Ate %f - %f left\n", bite, f.value)
 }
 
 func (f *Food) Size() float64 {
