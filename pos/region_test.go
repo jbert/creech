@@ -84,8 +84,6 @@ func TestRegionContains(t *testing.T) {
 		expected bool
 	}{
 		// Put current failure first, so logging shows failure
-		{unitSquare, Pos{-1, 0}, false},
-		// ...
 
 		{unitSquare, Pos{0.3, 0.4}, true},
 		{unitSquare, Pos{1.3, 0.4}, false},
@@ -114,7 +112,7 @@ func TestRegionContains(t *testing.T) {
 		{unitSquare, Pos{0, 2}, false},
 		{unitSquare, Pos{2, 2}, false},
 
-		//		{unitSquare, Pos{-1, 0}, false},
+		{unitSquare, Pos{-1, 0}, false},
 		{unitSquare, Pos{0, -1}, false},
 		{unitSquare, Pos{-1, -1}, false},
 

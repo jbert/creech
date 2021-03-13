@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"sort"
 	"time"
 
 	"github.com/jbert/creech/render"
@@ -219,6 +220,10 @@ func (c *Creech) String() string {
 func (c *Creech) MakePlan(g *Game) {
 	region := c.ViewRegion()
 	entities := g.Observe(region, c.ID())
+	sort.Slice(entities, func(i, j int) bool {
+		return c.Pos().DistanceToSquared(entities[i].Pos()) <
+			c.Pos().DistanceToSquared(entities[j].Pos())
+	})
 	c.plan = c.makeRandomPlan()
 	for i, ei := range entities {
 		switch e := ei.(type) {
@@ -247,28 +252,53 @@ func (c *Creech) DoPlan() {
 }
 
 func (c *Creech) TurnAway(e Entity) {
-	c.turnHelper(e, false)
+	dTheta := turnHelper(c.facing, c.Pos(), e.Pos(), c.maxTurn(), false)
+	c.facing = c.facing.Turn(dTheta)
 }
 
 func (c *Creech) TurnToward(e Entity) {
-	c.turnHelper(e, true)
+	dTheta := turnHelper(c.facing, c.Pos(), e.Pos(), c.maxTurn(), true)
+	c.facing = c.facing.Turn(dTheta)
 }
 
-func (c *Creech) turnHelper(e Entity, towards bool) {
-	joiningLine := e.Pos().Sub(c.pos).Polar().Normalise()
-	dTheta := joiningLine.Theta - c.pos.Polar().Theta
+func turnHelper(facing Polar, p Pos, target Pos, maxTurn float64, towards bool) float64 {
+	joiningLine := target.Sub(p).Polar()
+	angleToTarget := joiningLine.Theta - facing.Theta
+	if angleToTarget == 0 {
+		if towards {
+			return 0
+		} else {
+			return maxTurn
+		}
+	}
 
+	isNegative := math.Signbit(angleToTarget)
+	angleToTarget = math.Abs(angleToTarget)
+
+	var dTheta float64
 	if towards {
+		// We want to reduce angleToTarget as much as possible
+		// but not beyond zero
+		dTheta = angleToTarget
+		if dTheta > maxTurn {
+			dTheta = maxTurn
+		}
+	} else {
+		// We want to increase angleToTarget as much as possible
+		// but not beyond pi
+		dTheta = maxTurn
+		if angleToTarget+dTheta > math.Pi {
+			dTheta = math.Pi - angleToTarget
+		}
 		dTheta = -dTheta
 	}
 
-	// Want to Keep sign (and make it bigger)
-	if dTheta == 0 {
-		dTheta = 1
+	// Restore sign
+	if isNegative {
+		dTheta = -dTheta
 	}
-	dTheta /= dTheta
-	dTheta *= c.maxTurn()
-	c.facing = c.facing.Turn(dTheta)
+
+	return dTheta
 }
 
 func (c *Creech) maxMove() float64 {
@@ -276,15 +306,15 @@ func (c *Creech) maxMove() float64 {
 }
 
 func (c *Creech) maxTurn() float64 {
-	return math.Pi * 0.25
+	return math.Pi * 0.125
 }
 
 func (c *Creech) viewDistance() float64 {
-	return 10.0
+	return 7.0
 }
 
-func (c *Creech) sideDistance() float64 {
-	return 5.0
+func (c *Creech) viewSideDistance() float64 {
+	return 4.0
 }
 
 func (c *Creech) makeRandomPlan() func() {
@@ -354,11 +384,14 @@ func arrow(from, to Pos, headSize float64) []Pos {
 }
 
 func (c *Creech) ViewRegion() Region {
-	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(c.sideDistance()).Pos()
+	viewDist := c.viewDistance()
+	sideDist := c.viewSideDistance()
+
+	frontSideStep := c.facing.Turn(math.Pi / 2).Scale(sideDist).Pos()
 	backSideStep := frontSideStep.Scale(0.2)
 
 	base := c.pos
-	frontLeft := base.Add(c.facing.Scale(c.viewDistance()).Pos()).Add(frontSideStep)
+	frontLeft := base.Add(c.facing.Scale(viewDist).Pos()).Add(frontSideStep)
 	frontRight := frontLeft.Sub(frontSideStep.Scale(2.0))
 
 	backLeft := base.Add(backSideStep)

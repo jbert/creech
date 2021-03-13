@@ -33,18 +33,18 @@ func (p Pos) Length() float64 {
 	return math.Sqrt(p.X*p.X + p.Y*p.Y)
 }
 
+func (p Pos) DistanceToSquared(q Pos) float64 {
+	dx := p.X - q.X
+	dy := p.Y - q.Y
+	return dx*dx + dy*dy
+}
+
 func (p Pos) Scale(r float64) Pos {
 	return Pos{p.X * r, p.Y * r}
 }
 
 func (p Pos) Near(q Pos, r float64) bool {
-	return p.LengthSquared(q) < r*r
-}
-
-func (p Pos) LengthSquared(q Pos) float64 {
-	dx := p.X - q.X
-	dy := p.Y - q.Y
-	return dx*dx + dy*dy
+	return p.DistanceToSquared(q) < r*r
 }
 
 func (p Pos) Add(q Pos) Pos {

@@ -9,9 +9,16 @@ DONE - add ids to entities
     - factory to make with state?
     DONE - check in "plan" that we don't react to ourselves (same id)
 
-- sort observe list, nearest first
+DONE - add tests for turnHelper
+    - write it as a pure function (no method call)
+        - pos, target, maxTurn
+    - test we turn towards target (don't over-turn)
+    - test we turn away from threat
+    - do we want a single turnHelper with towards/away flag?
+
+DONE - sort observe list, nearest first
     - act on first
-    - when turning towards, don't turn full amount unless needed
+    DONE - when turning towards, don't turn full amount unless needed
 
 - save/load game state
 
