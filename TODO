@@ -1,84 +1,62 @@
 Now
 ---
 
-DONE - test region
-    - test smallest granularity first
-    - test bottom up
-
-DONE - add ids to entities
-    - factory to make with state?
-    DONE - check in "plan" that we don't react to ourselves (same id)
-
-DONE - add tests for turnHelper
-    - write it as a pure function (no method call)
-        - pos, target, maxTurn
-    - test we turn towards target (don't over-turn)
-    - test we turn away from threat
-    - do we want a single turnHelper with towards/away flag?
-
-DONE - sort observe list, nearest first
-    - act on first
-    DONE - when turning towards, don't turn full amount unless needed
-
 - eating
     DONE - move to eating distance for food
     - if at eating distance "eat"
     - eat transfers food value from food to creech
         - creech loses food value over time
 
-- have view work over torus boundaries
-    - make up multiple regions?
-
-DONE - make 'plan' an abstraction (name, func) so it can be displayed?
-
-- save/load game state
-
-- reload:
-    - reconect websocket on disconnect (loop)
-    - send version (or random nonce) as startup websocket message
-    - refresh if doesn't match
-
-- refactor creech Move/Turn
-    - cases in makePlan
-    - full speed
-        - momentum and acceleration
-
-- have save+exit http endpt / signal handler
-
-- add inotify
-    - build
-    - shutdown
-    - start (with game state load) script in repo
-
-- use view region
-    - gets a list of []Food, []Creech (and distance to each)
-        DONE - define "Region"
-            - (poly or assembly of triangles)
-            - want to be able to see to your immediate left and right
-        - then find entities in that region
-            - could use this also for randomEmptyPos?
-        DONE - should be float-friendly
-    DONE - what it sees depends which way it is facing
-    - also on the creech abilities
-        - genes, running
+- add genotype and phenotype
+    - genotype:
+        map[string]float64
+        get via method which checks string
+        set only at ctor time with full set
+    - phenotype calls into genotype to calc derived characteristics
+        - do we also want environmental effects to affect phenotype?
+            - (nutrition history?)
+            - current heat levels (fur length)
+                - the amount of phenotypic variability can be a genomic trait
+    - try and make each genomic value have positives and negatives
 
 -----------------------------------------------------------------
 
 Soon
 ----
 
-- move constants into method call on Creech
-    - view distance
-    - size
-    - turn speed max
-    - run speed max
+- what to do if two creeches approach same food?
+    - eat?
+    - flee?
+    - can we add 'fight?'
 
-- MakePlan depends on observation
-    - do we want to reify plan?
-        - type Plan interface {
-            StillPossible() bool
-            Execute()
-        }
+- bugs?
+    - more distant creech triggers flee when eating?
+    - visual approach distance for large food has a bigger gap than small?
+        - draw radius?
+
+- have view work over torus boundaries
+    - make up multiple regions?
+
+- persistence
+    - save/load game state
+    - have save+exit http endpt / signal handler
+
+- dev hot reload:
+    - reconect websocket on disconnect (loop)
+    - send version (or random nonce) as startup websocket message
+    - refresh if doesn't match
+
+    - add inotify
+        - build
+        - shutdown
+        - start (with game state load) script in repo
+
+
+- momentum and acceleration
+    - turning too
+    - how does that work?
+        - turning shouldn't change my momentum vector
+        - but also I can't turn and have my momentum just carry me sideways
 
 - static cleanup
     - HTML structure
@@ -261,4 +239,53 @@ DONE - Observe returns []Entity
 
 DONE - foodDensity (size per value) is a property of the kind of food
     - arg to food ctor
+
+Sat 13 Mar 08:33:21 GMT 2021
+----------------------------
+
+DONE - test region
+    - test smallest granularity first
+    - test bottom up
+
+DONE - add ids to entities
+    - factory to make with state?
+    DONE - check in "plan" that we don't react to ourselves (same id)
+
+DONE - add tests for turnHelper
+    - write it as a pure function (no method call)
+        - pos, target, maxTurn
+    - test we turn towards target (don't over-turn)
+    - test we turn away from threat
+    - do we want a single turnHelper with towards/away flag?
+
+DONE - sort observe list, nearest first
+    - act on first
+    DONE - when turning towards, don't turn full amount unless needed
+
+DONE - make 'plan' an abstraction (name, func) so it can be displayed?
+
+DONE - move constants into method call on Creech
+    - view distance
+    - size
+    - turn speed max
+    - run speed max
+
+DONE - MakePlan depends on observation
+    - do we want to reify plan?
+        - type Plan interface {
+            StillPossible() bool
+            Execute()
+        }
+
+DONE - use view region
+    - gets a list of []Food, []Creech (and distance to each)
+        DONE - define "Region"
+            - (poly or assembly of triangles)
+            - want to be able to see to your immediate left and right
+        - then find entities in that region
+            - could use this also for randomEmptyPos?
+        DONE - should be float-friendly
+    DONE - what it sees depends which way it is facing
+    - also on the creech abilities
+        - genes, running
 
