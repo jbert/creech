@@ -196,7 +196,7 @@ type Plan struct {
 }
 
 func NewPlan(name string, action func()) *Plan {
-	return &Plan{name: name, action: action, cost: 0.01}
+	return &Plan{name: name, action: action, cost: 0.1}
 }
 
 func (p *Plan) Cost() float64 {
@@ -490,26 +490,14 @@ func (c *Creech) ViewRegion() Region {
 	return r
 }
 
-func drawX(p Pos, facing Polar, size float64) []Pos {
-	step := facing.Scale(size).Pos()
-	sideStep := facing.Turn(math.Pi / 2).Scale(size).Pos()
-	return []Pos{
-		p,
-		p.Add(step),
-		p,
-		p.Add(sideStep),
-		p,
-		p.Sub(step),
-		p,
-		p.Sub(sideStep),
-	}
-}
-
 func (c *Creech) Web() []render.DrawCommand {
 	if c.Dead() {
-		pts := drawX(c.pos, c.facing, c.size)
+		step := c.facing.Scale(c.size).Pos()
+		sideStep := c.facing.Turn(math.Pi / 2).Scale(c.size).Pos()
+		p := c.Pos()
 		return []render.DrawCommand{
-			render.Poly(pts),
+			render.Poly([]Pos{p.Sub(step), p.Add(step)}),
+			render.Poly([]Pos{p.Sub(sideStep), p.Add(sideStep)}),
 		}
 	}
 	dir := c.facing.Pos().Scale(c.size)
